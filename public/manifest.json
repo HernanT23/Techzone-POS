@@ -1,0 +1,20 @@
+{
+  "short_name": "Techzone",
+  "name": "Techzone ERP Suite",
+  "icons": [
+    {
+      "src": "/techzone_icon.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/techzone_icon.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#0f2027",
+  "background_color": "#0f2027"
+}

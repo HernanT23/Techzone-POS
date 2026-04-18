@@ -1,0 +1,12 @@
+node_modules
+dist
+.electron
+release
+*.xlsx
+Facturas_PDF
+CierresZ_PDF
+db
+.vercel
+.git
+.vscode
+*.log

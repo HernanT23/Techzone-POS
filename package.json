@@ -1,0 +1,57 @@
+{
+  "name": "valery-pos",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Valery inspired POS offline application",
+  "main": "electron/main.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "build:watch": "vite build --watch",
+    "preview": "vite preview",
+    "electron:start": "electron .",
+    "electron:dev": "vite build && electron .",
+    "pack": "vite build && electron-builder --win"
+  },
+  "build": {
+    "appId": "com.techzone.erp",
+    "productName": "Techzone ERP",
+    "asar": false,
+    "directories": {
+      "output": "release"
+    },
+    "win": {
+      "target": "nsis",
+      "publish": [
+        {
+          "provider": "github",
+          "owner": "Hernan2d",
+          "repo": "Techzone-POS"
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": true,
+      "allowToChangeInstallationDirectory": false,
+      "createDesktopShortcut": true,
+      "runAfterFinish": true
+    }
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.103.0",
+    "electron-log": "^5.4.3",
+    "electron-updater": "^6.8.3",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.27.0",
+    "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.11",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^4.3.3",
+    "electron": "^33.0.2",
+    "electron-builder": "^26.8.1",
+    "vite": "^5.4.9"
+  }
+}

@@ -1,0 +1,12 @@
+node_modules
+dist
+release
+*.log
+.DS_Store
+.env
+db/*.json
+backups
+CierresZ_PDF
+Facturas_PDF
+inventory.xlsx
+package-lock.json

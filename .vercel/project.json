@@ -1,0 +1,16 @@
+{
+  "projectId": "prj_2TdWljPkiQJ7tD6nSwamIdaCdB5s",
+  "orgId": "team_7QPhCm6Hr9TjNiBGb4B6HT8w",
+  "projectName": "techzone-erp",
+  "settings": {
+    "createdAt": 1776263470517,
+    "framework": "vite",
+    "devCommand": null,
+    "installCommand": null,
+    "buildCommand": null,
+    "outputDirectory": null,
+    "rootDirectory": null,
+    "directoryListing": false,
+    "nodeVersion": "24.x"
+  }
+}
