@@ -11,7 +11,7 @@ git add .
 Write-Host "✅ Archivos agregados." -ForegroundColor Green
 
 # 3. Commit
-git commit -m "🚀 Techzone ERP v1.0.0 - Listo para Auto-Updates"
+git commit -m "🚀 Techzone ERP v1.1.5 - Sincronización Web y Desktop (Cache Purge)"
 Write-Host "✅ Punto de control creado." -ForegroundColor Green
 
 # 4. Branch
@@ -22,7 +22,7 @@ Write-Host "✅ Rama principal configurada." -ForegroundColor Green
 if (git remote) {
     git remote remove origin
 }
-git remote add origin https://github.com/Hernan2d/Techzone-POS.git
+git remote add origin https://github.com/HernanT23/Techzone-POS.git
 Write-Host "✅ Conectado a GitHub (Hernan2d/Techzone-POS)." -ForegroundColor Green
 
 # 6. Push

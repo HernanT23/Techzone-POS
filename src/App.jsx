@@ -341,7 +341,7 @@ function AppWrapper() {
              </div>
  
              <div style={{ marginTop: '20px', padding: '15px 0', opacity: 0.3, fontSize: '0.65rem', textAlign: 'center', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
-                TECHZONE SMART CORE v1.1.4
+                TECHZONE SMART CORE v1.1.5
              </div>
            </aside>
            
