@@ -241,6 +241,50 @@ app.whenReady().then(() => {
         }
       }
 
+      // 7. Pull Daily Closures
+      const { data: cloudClosures, error: zErr } = await supabase.from('daily_closures').select('*');
+      if (!zErr && cloudClosures) {
+         dbData.daily_closures = dbData.daily_closures || [];
+         cloudClosures.forEach(cz => {
+            if (!dbData.daily_closures.find(lz => String(lz.id) === String(cz.id))) {
+               dbData.daily_closures.push({
+                  id: cz.id,
+                  timestamp: cz.timestamp,
+                  totalSalesUSD: cz.total_sales_usd,
+                  totalSalesBS: cz.total_sales_bs,
+                  netCashUSD: cz.net_cash_usd,
+                  netCashBS: cz.net_cash_bs,
+                  transactionsCount: cz.transactions_count
+               });
+               changed = true;
+            }
+         });
+      }
+
+      // 8. Pull Expenses
+      const { data: cloudExpenses, error: eErr } = await supabase.from('expenses').select('*');
+      if (!eErr && cloudExpenses) {
+         dbData.expenses = dbData.expenses || [];
+         cloudExpenses.forEach(ce => {
+            if (!dbData.expenses.find(le => String(le.id) === String(ce.id))) {
+               dbData.expenses.push(ce);
+               changed = true;
+            }
+         });
+      }
+
+      // 9. Pull Customers
+      const { data: cloudCustomers, error: cuErr } = await supabase.from('customers').select('*');
+      if (!cuErr && cloudCustomers) {
+         dbData.customers = dbData.customers || [];
+         cloudCustomers.forEach(cc => {
+            if (!dbData.customers.find(lc => String(lc.id) === String(cc.id))) {
+               dbData.customers.push(cc);
+               changed = true;
+            }
+         });
+      }
+
       // 7. Sync Admin Password for Offline use
       try {
         const { data: adminUser, error: uErr } = await supabase
@@ -327,6 +371,30 @@ app.whenReady().then(() => {
             delivery_date: r.deliveryDate
          }));
          await supabase.from('repairs').upsert(cloudRepairs);
+      }
+
+      // 7. Sync Daily Closures
+      if (dbData.daily_closures && dbData.daily_closures.length > 0) {
+         const closuresToSync = dbData.daily_closures.map(z => ({
+            id: z.id,
+            timestamp: z.timestamp,
+            total_sales_usd: z.totalSalesUSD,
+            total_sales_bs: z.totalSalesBS,
+            net_cash_usd: z.netCashUSD,
+            net_cash_bs: z.netCashBS,
+            transactions_count: z.transactionsCount
+         }));
+         await supabase.from('daily_closures').upsert(closuresToSync);
+      }
+
+      // 8. Sync Expenses
+      if (dbData.expenses && dbData.expenses.length > 0) {
+         await supabase.from('expenses').upsert(dbData.expenses);
+      }
+
+      // 9. Sync Customers
+      if (dbData.customers && dbData.customers.length > 0) {
+         await supabase.from('customers').upsert(dbData.customers);
       }
 
       logSync('✅ Nube actualizada.');
