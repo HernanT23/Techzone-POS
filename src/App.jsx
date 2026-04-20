@@ -24,9 +24,10 @@ function AppWrapper() {
    const [isMenuOpen, setIsMenuOpen] = useState(false);
    const [refreshKey, setRefreshKey] = useState(0);
    const [businessSettings, setBusinessSettings] = useState({
-       name: 'TECHZONE',
-       rif: 'J-507426785',
-       tel: '04245655763'
+       business_name: 'TECHZONE',
+       business_rif: 'J-507426785',
+       business_tel: '04245655763',
+       dashboard_label: 'Negocio',
    });
 
     // Auto-login for Mobile (No password)
@@ -57,9 +58,10 @@ function AppWrapper() {
              res.data.forEach(s => settingsMap[s.key] = s.value);
              if (settingsMap.exchange_rate_bs) setExchangeRate(settingsMap.exchange_rate_bs);
              setBusinessSettings({
-                name: settingsMap.business_name || 'TECHZONE',
-                rif: settingsMap.business_rif || 'J-507426785',
-                tel: settingsMap.business_tel || '04245655763'
+                business_name: settingsMap.business_name || 'TECHZONE',
+                business_rif: settingsMap.business_rif || 'J-507426785',
+                business_tel: settingsMap.business_tel || '04245655763',
+                dashboard_label: settingsMap.dashboard_label || 'Negocio'
              });
           }
         });
@@ -300,7 +302,7 @@ function AppWrapper() {
              </div>
  
              <nav className="sidebar-nav" onClick={() => setIsMenuOpen(false)}>
-               <NavLink to="/dashboard"><span>📊</span> Negocio</NavLink>
+               <NavLink to="/dashboard"><span>📊</span> {businessSettings.dashboard_label || 'Negocio'}</NavLink>
                <NavLink to="/" end><span>🏠</span> Venta</NavLink>
                {role === 'admin' && <NavLink to="/drawer"><span>💰</span> Caja</NavLink>}
                {role === 'admin' && (
@@ -356,7 +358,7 @@ function AppWrapper() {
                <Route path="/customers" element={<Customers refreshKey={refreshKey} />} />
                <Route path="/alerts" element={<Alerts />} />
                {role === 'admin' && <Route path="/expenses" element={<Expenses refreshKey={refreshKey} />} />}
-               {role === 'admin' && <Route path="/dashboard" element={<Dashboard refreshKey={refreshKey} exchangeRate={exchangeRate} />} />}
+               {role === 'admin' && <Route path="/dashboard" element={<Dashboard refreshKey={refreshKey} exchangeRate={exchangeRate} dashboardLabel={businessSettings.dashboard_label || 'Negocio'} />} />}
              </Routes>
            </main>
         </div>
