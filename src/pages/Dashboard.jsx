@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { dbService } from '../services/api.service';
 
-export default function Dashboard({ refreshKey }) {
+export default function Dashboard({ refreshKey, exchangeRate, dashboardLabel }) {
   const [products, setProducts] = useState([]);
   const [sales, setSales] = useState([]);
   const [repairs, setRepairs] = useState([]);

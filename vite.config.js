@@ -11,11 +11,11 @@ function syncToReleasPlugin() {
       const src = path.resolve('dist');
       // Sincronizar con Carpeta de Proyecto
       const projectDest = path.resolve('release/resources/app/dist');
-      // Sincronizar con Escritorio (EL REAL)
-      const desktopDest = 'C:/Users/Hernan2d/OneDrive/Escritorio/Techzone ERP/resources/app/dist';
+      // Sincronizar con Instalación Real en AppData (DESBLOQUEADA)
+      const desktopDest = 'C:/Users/Hernan2d/AppData/Local/Programs/valery-pos/resources/app/dist';
 
       const copyRecursive = (from, to) => {
-        if (!fs.existsSync(to)) return; // Solo si existe la carpeta destino
+        if (!fs.existsSync(to)) fs.mkdirSync(to, { recursive: true });
         fs.readdirSync(from).forEach(file => {
           const s = path.join(from, file);
           const d = path.join(to, file);
@@ -25,14 +25,18 @@ function syncToReleasPlugin() {
       };
 
       try {
-        copyRecursive(src, projectDest);
-        copyRecursive(src, desktopDest);
+        if (fs.existsSync(src)) {
+           copyRecursive(src, projectDest);
+           copyRecursive(src, desktopDest);
+        }
         
         // Sincronizar también la lógica de Electron y DB
-        copyRecursive(path.resolve('electron'), 'C:/Users/Hernan2d/OneDrive/Escritorio/Techzone ERP/resources/app/electron');
-        copyRecursive(path.resolve('db'), 'C:/Users/Hernan2d/OneDrive/Escritorio/Techzone ERP/resources/app/db');
+        const appRoot = 'C:/Users/Hernan2d/AppData/Local/Programs/valery-pos/resources/app';
+        copyRecursive(path.resolve('electron'), path.join(appRoot, 'electron'));
+        copyRecursive(path.resolve('db'), path.join(appRoot, 'db'));
+        fs.copyFileSync(path.resolve('package.json'), path.join(appRoot, 'package.json'));
         
-        console.log('📦 Hot-Sync: App del escritorio (UI, Lógica y DB) actualizada ✓');
+        console.log('📦 Hot-Sync: App del escritorio (Desbloqueada) actualizada ✓');
       } catch (e) {
         console.log('⚠️ Error al sincronizar (la app podría estar abierta con archivos bloqueados)');
       }
