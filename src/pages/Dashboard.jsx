@@ -147,7 +147,7 @@ export default function Dashboard({ refreshKey }) {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '25px', height: '100%', overflowY: 'auto', paddingRight: '15px' }}>
        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <h1 style={{ margin: '0', display: 'flex', alignItems: 'center', gap: '15px' }}>
-             <span style={{fontSize: '2.5rem'}}>📊</span> Panel Gerencia Techzone
+             <span style={{fontSize: '2.5rem'}}>📊</span> Panel Negocio Techzone
           </h1>
           <div style={{ background: 'rgba(255,255,255,0.05)', padding: '10px 20px', borderRadius: '30px', border: '1px solid var(--glass-border)', fontSize: '0.9rem', opacity: 0.8 }}>
              Ultima actualización: {new Date().toLocaleTimeString()}

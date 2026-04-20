@@ -300,7 +300,7 @@ function AppWrapper() {
              </div>
  
              <nav className="sidebar-nav" onClick={() => setIsMenuOpen(false)}>
-               <NavLink to="/dashboard"><span>📊</span> Dashboard</NavLink>
+               <NavLink to="/dashboard"><span>📊</span> Negocio</NavLink>
                <NavLink to="/" end><span>🏠</span> Venta</NavLink>
                {role === 'admin' && <NavLink to="/drawer"><span>💰</span> Caja</NavLink>}
                {role === 'admin' && (

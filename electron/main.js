@@ -148,7 +148,17 @@ app.whenReady().then(() => {
         if (!sErr && cloudSales) {
           cloudSales.forEach(cs => {
              if (!dbData.sales.find(ls => String(ls.id) === String(cs.id))) {
-                dbData.sales.push(cs);
+                dbData.sales.push({
+                   id: cs.id,
+                   date: cs.date,
+                   totalValueUSD: cs.total_usd,
+                   totalValueBS: cs.total_bs,
+                   exchangeRateUsed: cs.exchange_rate,
+                   items: cs.items,
+                   clientName: cs.client_name,
+                   clientId: cs.client_id,
+                   processedBy: cs.processed_by
+                });
                 changed = true;
              }
           });
@@ -278,7 +288,18 @@ app.whenReady().then(() => {
 
       // 2. Sync Sales
       if (dbData.sales && dbData.sales.length > 0) {
-         await supabase.from('sales').upsert(dbData.sales);
+         const salesToSync = dbData.sales.map(s => ({
+            id: s.id,
+            date: s.date,
+            total_usd: s.totalValueUSD,
+            total_bs: s.totalValueBS,
+            exchange_rate: s.exchangeRateUsed,
+            items: s.items,
+            client_name: s.clientName,
+            client_id: s.clientId,
+            processed_by: s.processedBy
+         }));
+         await supabase.from('sales').upsert(salesToSync);
       }
 
       // 3. Sync Cash Transactions
