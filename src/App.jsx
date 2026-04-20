@@ -153,7 +153,6 @@ function AppWrapper() {
                 <h1>TECHZONE</h1>
                 <h3 className="login-subtitle">ERP 2.0 Management Suite</h3>
                 <div style={{ marginTop: '20px', opacity: 0.5, fontSize: '0.8rem', fontWeight: 'bold', border: '1px solid rgba(255,255,255,0.2)', padding: '4px 12px', borderRadius: '20px', display: 'inline-block' }}>
-                   VERSION v1.1.3
                 </div>
                 <div className="security-badge">
                    <span style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.9rem' }}>
@@ -196,7 +195,7 @@ function AppWrapper() {
                        </div>
 
                        {loginError && (
-                          <div className="error-badge" style={{ background: '#ef4444', color: 'white', padding: '10px', borderRadius: '8px', marginBottom: '15px', fontSize: '0.85rem' }}>
+                          <div className="error-badge" style={{ background: '#ef4444', color: 'white', padding: '5px', borderRadius: '8px', marginBottom: '15px', fontSize: '0.85rem' }}>
                              {loginError}
                           </div>
                        )}
@@ -274,33 +273,6 @@ function AppWrapper() {
 
    return (
       <div className={`app-container ${isMenuOpen ? 'menu-open' : ''}`}>
-        {/* Mobile Header */}
-        <header className="mobile-header" style={{ display: 'flex', gap: '15px' }}>
-           <button className="hamburger" onClick={() => setIsMenuOpen(!isMenuOpen)}>
-              {isMenuOpen ? '✕' : '☰'}
-           </button>
-           <h1 style={{ color: '#00d2ff', fontSize: '1.2rem', margin: 0, flex: 1 }}>TECHZONE</h1>
-           
-           <div className="header-rate-box" style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(0,210,255,0.1)', padding: '5px 12px', borderRadius: '12px', border: '1px solid rgba(0,210,255,0.2)' }}>
-              <span style={{ fontSize: '0.7rem', fontWeight: 'bold', opacity: 0.8 }}>TASA:</span>
-              {role === 'admin' ? (
-                <input 
-                  type="text"
-                  value={exchangeRate}
-                  onChange={(e) => {
-                    setExchangeRate(e.target.value);
-                    if (dbService.saveSetting) dbService.saveSetting('exchange_rate_bs', e.target.value);
-                  }}
-                  style={{ background: 'none', border: 'none', color: '#00d2ff', fontWeight: 'bold', width: '60px', textAlign: 'center', outline: 'none', fontSize: '1rem' }}
-                />
-              ) : (
-                <span style={{ color: '#00d2ff', fontWeight: 'bold' }}>{exchangeRate}</span>
-              )}
-           </div>
-
-           <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: isOnline ? 'var(--success)' : 'var(--danger)' }}></div>
-        </header>
-
         <div className="main-layout">
            <aside className={`sidebar glass-panel ${isMenuOpen ? 'open' : ''}`}>
              <h1 className="sidebar-logo" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -349,7 +321,7 @@ function AppWrapper() {
              </nav>
              
              <div className="rate-box">
-                <label>Tasa BS:</label>
+                <label style={{ fontSize: "0.7rem", opacity: 0.6, marginBottom: "2px", display: "block" }}>Tasa BS:</label>
                 {role === 'admin' ? (
                    <input 
                      value={exchangeRate} 
@@ -359,17 +331,17 @@ function AppWrapper() {
                           dbService.saveSetting('exchange_rate_bs', e.target.value);
                        }
                      }}
-                     style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--accent-color)', background: 'rgba(0,0,0,0.4)', color: 'white', textAlign: 'center', fontWeight: 'bold', fontSize: '1.2rem', outline: 'none' }}
+                     style={{ width: '100%', padding: '5px', borderRadius: '8px', border: '1px solid var(--accent-color)', background: 'rgba(0,0,0,0.4)', color: 'white', textAlign: 'center', fontWeight: 'bold', fontSize: '1rem', outline: 'none' }}
                    />
                 ) : (
-                   <div style={{ padding: '10px', background: 'rgba(0,0,0,0.2)', borderRadius: '5px', textAlign: 'center', fontWeight: 'bold', fontSize: '1.1rem' }}>
+                   <div style={{ padding: '5px', background: 'rgba(0,0,0,0.2)', borderRadius: '5px', textAlign: 'center', fontWeight: 'bold', fontSize: '0.9rem' }}>
                       {exchangeRate}
                    </div>
                 )}
              </div>
  
              <div style={{ marginTop: '20px', padding: '15px 0', opacity: 0.3, fontSize: '0.65rem', textAlign: 'center', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
-                TECHZONE SMART CORE v1.1.3
+                TECHZONE SMART CORE v1.1.4
              </div>
            </aside>
            

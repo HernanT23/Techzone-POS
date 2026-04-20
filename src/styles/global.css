@@ -185,12 +185,12 @@ body {
 
 .rate-box {
   margin-top: auto;
-  padding: 15px;
-  background: rgba(0,210,255,0.08);
-  border-radius: 12px;
-  border: 1px solid rgba(0,210,255,0.2);
-  box-shadow: 0 0 15px rgba(0,210,255,0.1);
-  flex-shrink: 0; /* Never collapse */
+  padding: 8px 12px;
+  background: rgba(0, 210, 255, 0.05);
+  border-radius: 8px;
+  border: 1px solid rgba(0, 210, 255, 0.1);
+  box-shadow: 0 0 10px rgba(0, 210, 255, 0.05);
+  flex-shrink: 0;
 }
 
 .content {
