@@ -79,6 +79,22 @@ export const dbService = {
         return { success: true, data: [data] };
       }
 
+      if (q.includes('SELECT * FROM EXPENSES')) {
+        const { data, error } = await supabase.from('expenses').select('*').order('date', { ascending: false });
+        if (error) return { success: false, error: error.message };
+        return { success: true, data: data || [] };
+      }
+
+      if (q.includes('SELECT * FROM REPAIRS')) {
+        const { data, error } = await supabase.from('repairs').select('*').order('date', { ascending: false });
+        if (error) return { success: false, error: error.message };
+        const normalized = (data || []).map(r => ({
+          ...r,
+          partCost: r.part_cost
+        }));
+        return { success: true, data: normalized };
+      }
+
       return { success: false, error: 'Query mapping needed for Web Mode: ' + q.substring(0, 50) };
     } catch (err) {
       return { success: false, error: err.message };
