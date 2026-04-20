@@ -1,7 +1,7 @@
 {
   "name": "valery-pos",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.1.2",
   "description": "Valery inspired POS offline application",
   "main": "electron/main.js",
   "scripts": {
@@ -16,12 +16,28 @@
   "build": {
     "appId": "com.techzone.erp",
     "productName": "Techzone ERP",
-    "asar": false,
+    "asar": true,
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "HernanT23",
+        "repo": "Techzone-POS"
+      }
+    ],
     "directories": {
       "output": "release"
     },
+    "files": [
+      "dist/**/*",
+      "electron/**/*",
+      "package.json"
+    ],
+    "extraResources": [
+      "inventory.xlsx"
+    ],
     "win": {
       "target": "nsis",
+      "icon": "public/techzone_icon.png",
       "publish": [
         {
           "provider": "github",

@@ -30,6 +30,7 @@ contextBridge.exposeInMainWorld('api', {
   saveRepair: (repair) => ipcRenderer.invoke('save-repair', repair),
   deleteRepair: (id) => ipcRenderer.invoke('delete-repair', id),
   clearAllRepairs: () => ipcRenderer.invoke('clear-all-repairs'),
+  importExcel: () => ipcRenderer.invoke('import-excel'),
 
   onSyncStatus: (callback) => ipcRenderer.on('sync-status', (event, value) => callback(value)),
   onDbUpdated: (callback) => ipcRenderer.on('db-updated', () => callback())

@@ -368,5 +368,12 @@ export const dbService = {
       return window.api.triggerSync();
     }
     return { success: true };
+  },
+
+  importExcel: async () => {
+    if (isElectron && window.api.importExcel) {
+      return window.api.importExcel();
+    }
+    return { success: false, error: 'Función solo disponible en la versión de escritorio.' };
   }
 };

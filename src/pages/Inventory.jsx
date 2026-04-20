@@ -7,6 +7,7 @@ export default function Inventory({ exchangeRate, refreshKey }) {
   const [products, setProducts] = useState([]);
   const [editing, setEditing] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [importing, setImporting] = useState(false);
   
   // Show/Hide costs
   const [showCosts, setShowCosts] = useState(true);
@@ -80,6 +81,24 @@ export default function Inventory({ exchangeRate, refreshKey }) {
     }
   };
 
+  const handleImportExcel = async () => {
+    if (importing) return;
+    setImporting(true);
+    try {
+      const res = await dbService.importExcel();
+      if (res.success) {
+        alert(`✅ Éxito: Se procesaron ${res.count} productos del archivo Excel.`);
+        loadProducts();
+      } else {
+        alert(`❌ Error: ${res.error}`);
+      }
+    } catch (e) {
+      alert(`❌ Error crítico: ${e.message}`);
+    } finally {
+      setImporting(false);
+    }
+  };
+
   const handleInlinePriceChange = async (id, newPriceVal) => {
      const val = parseFloat(newPriceVal);
      if (isNaN(val)) return;
@@ -135,10 +154,29 @@ export default function Inventory({ exchangeRate, refreshKey }) {
            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px', flexWrap: 'wrap', gap: '10px' }}>
              <div>
                 <h2 style={{ margin: '0 0 5px 0' }}>Inventario Total</h2>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '5px', cursor: 'pointer', opacity: 0.8, fontSize: '0.9rem' }}>
-                   <input type="checkbox" checked={showCosts} onChange={e => setShowCosts(e.target.checked)} />
-                   Mostrar Costos y Márgenes Internos
-                </label>
+                <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
+                   <label style={{ display: 'flex', alignItems: 'center', gap: '5px', cursor: 'pointer', opacity: 0.8, fontSize: '0.8rem' }}>
+                      <input type="checkbox" checked={showCosts} onChange={e => setShowCosts(e.target.checked)} />
+                      Costos/Márgenes
+                   </label>
+                   <button 
+                     onClick={handleImportExcel}
+                     disabled={importing}
+                     style={{ 
+                        background: importing ? 'rgba(255,255,255,0.1)' : 'var(--accent-color)', 
+                        color: '#000', 
+                        border: 'none', 
+                        padding: '5px 12px', 
+                        borderRadius: '20px', 
+                        fontSize: '0.8rem', 
+                        fontWeight: 'bold', 
+                        cursor: importing ? 'wait' : 'pointer',
+                        transition: 'all 0.3s'
+                     }}
+                   >
+                      {importing ? '⌛ Procesando...' : '📥 Cargar desde Excel'}
+                   </button>
+                </div>
              </div>
              <div style={{ position: 'relative', width: '300px' }}>
                 <input 

@@ -12,6 +12,7 @@ body {
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
   overflow: hidden;
+  height: 100vh;
 }
 
 /* Custom Scrollbar */
@@ -35,10 +36,18 @@ body {
 
 .app-container {
   display: flex;
+  flex-direction: column; /* Stack header and main body */
   height: 100vh;
   padding: 15px;
-  gap: 15px;
+  gap: 10px;
   animation: appFadeIn 1s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.main-layout {
+  display: flex;
+  flex: 1;
+  gap: 15px;
+  overflow: hidden;
 }
 
 @keyframes appFadeIn {
@@ -50,7 +59,35 @@ body {
   width: 250px;
   display: flex;
   flex-direction: column;
-  padding: 20px;
+  padding: 15px;
+  max-height: calc(100vh - 30px);
+  overflow: hidden; /* Prevent sidebar itself from scrolling everything */
+  scrollbar-width: thin;
+}
+
+.sidebar, .sidebar-nav {
+  scrollbar-width: auto;
+  scrollbar-color: #00d2ff rgba(0, 0, 0, 0.3);
+}
+
+.sidebar::-webkit-scrollbar, .sidebar-nav::-webkit-scrollbar {
+  width: 10px;
+}
+
+.sidebar::-webkit-scrollbar-track, .sidebar-nav::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 10px;
+}
+
+.sidebar::-webkit-scrollbar-thumb, .sidebar-nav::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #00d2ff 0%, #3a7bd5 100%);
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 210, 255, 0.5);
+}
+
+.sidebar::-webkit-scrollbar-thumb:hover, .sidebar-nav::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #00e5ff 0%, #4a8df5 100%);
+  box-shadow: 0 0 15px rgba(0, 210, 255, 0.8);
 }
 
 .sidebar h1.sidebar-logo {
@@ -66,6 +103,10 @@ body {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  flex: 1; /* Grow to fill space */
+  overflow-y: auto; /* Enable scrolling for menu items */
+  padding-right: 5px;
+  margin-bottom: 15px;
 }
 
 .sidebar-nav a {
@@ -145,9 +186,11 @@ body {
 .rate-box {
   margin-top: auto;
   padding: 15px;
-  background: rgba(0,0,0,0.2);
+  background: rgba(0,210,255,0.08);
   border-radius: 12px;
-  border: 1px solid rgba(255,255,255,0.05);
+  border: 1px solid rgba(0,210,255,0.2);
+  box-shadow: 0 0 15px rgba(0,210,255,0.1);
+  flex-shrink: 0; /* Never collapse */
 }
 
 .content {
@@ -265,16 +308,18 @@ body {
 }
 
 .mobile-header {
-  display: none;
+  display: flex !important; /* Always show top bar */
   background: rgba(0,0,0,0.4);
   backdrop-filter: blur(10px);
-  padding: 15px 20px;
+  padding: 12px 20px;
   position: sticky;
   top: 0;
   z-index: 900;
   justify-content: space-between;
   align-items: center;
   border-bottom: 1px solid var(--glass-border);
+  border-radius: 12px;
+  margin-bottom: 10px;
 }
 
 .hamburger {
@@ -498,6 +543,8 @@ body {
   
   .mobile-header {
     display: flex !important;
+    margin-bottom: 0;
+    border-radius: 0;
   }
 
   .sidebar {

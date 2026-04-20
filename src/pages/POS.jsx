@@ -287,6 +287,17 @@ export default function POS({ refreshKey, exchangeRate, userRole, businessSettin
       {/* Product List Panel */}
       <div className="glass-panel" style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '20px', padding: '20px' }}>
         <div style={{ display: 'flex', gap: '10px', flexDirection: 'column' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(0,210,255,0.05)', padding: '10px 20px', borderRadius: '12px', border: '1px solid rgba(0,210,255,0.1)' }}>
+             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <span style={{ fontSize: '1.2rem' }}>📈</span>
+                <span style={{ fontWeight: 'bold', fontSize: '0.9rem', opacity: 0.8 }}>TASA DE CAMBIO:</span>
+                <span style={{ color: 'var(--accent-color)', fontWeight: '900', fontSize: '1.2rem' }}>Bs. {exchangeRate}</span>
+             </div>
+             <div style={{ fontSize: '0.75rem', opacity: 0.6, fontStyle: 'italic' }}>
+                * Todos los precios se calculan automáticamente
+             </div>
+          </div>
+
           <input
             ref={searchInputRef}
             type="text"

@@ -272,100 +272,119 @@ function AppWrapper() {
    return (
       <div className={`app-container ${isMenuOpen ? 'menu-open' : ''}`}>
         {/* Mobile Header */}
-        <header className="mobile-header">
+        <header className="mobile-header" style={{ display: 'flex', gap: '15px' }}>
            <button className="hamburger" onClick={() => setIsMenuOpen(!isMenuOpen)}>
               {isMenuOpen ? '✕' : '☰'}
            </button>
-           <h1 style={{ color: '#00d2ff', fontSize: '1.2rem', margin: 0 }}>TECHZONE</h1>
+           <h1 style={{ color: '#00d2ff', fontSize: '1.2rem', margin: 0, flex: 1 }}>TECHZONE</h1>
+           
+           <div className="header-rate-box" style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(0,210,255,0.1)', padding: '5px 12px', borderRadius: '12px', border: '1px solid rgba(0,210,255,0.2)' }}>
+              <span style={{ fontSize: '0.7rem', fontWeight: 'bold', opacity: 0.8 }}>TASA:</span>
+              {role === 'admin' ? (
+                <input 
+                  type="text"
+                  value={exchangeRate}
+                  onChange={(e) => {
+                    setExchangeRate(e.target.value);
+                    if (dbService.saveSetting) dbService.saveSetting('exchange_rate_bs', e.target.value);
+                  }}
+                  style={{ background: 'none', border: 'none', color: '#00d2ff', fontWeight: 'bold', width: '60px', textAlign: 'center', outline: 'none', fontSize: '1rem' }}
+                />
+              ) : (
+                <span style={{ color: '#00d2ff', fontWeight: 'bold' }}>{exchangeRate}</span>
+              )}
+           </div>
+
            <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: isOnline ? 'var(--success)' : 'var(--danger)' }}></div>
         </header>
 
-        <aside className={`sidebar glass-panel ${isMenuOpen ? 'open' : ''}`} style={{ display: 'flex', flexDirection: 'column' }}>
-          <h1 className="sidebar-logo" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            TECHZONE
-            <span style={{ fontSize: '0.5rem', background: 'var(--success)', color: 'black', padding: '2px 6px', borderRadius: '4px', fontWeight: 'bold', letterSpacing: '1px' }}>LIVE</span>
-          </h1>
-          
-          <div className="status-badge-container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px', background: 'rgba(0,0,0,0.2)', borderRadius: '8px', marginBottom: '15px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-               <div className={`status-dot ${syncStatus}`}></div>
-               <span style={{ opacity: 0.8, fontSize: '0.75rem', fontWeight: '500' }}>
-                 {syncStatus === 'syncing' ? 'Sincronizando...' : (isOnline ? 'Nube Conectada' : 'Modo Local Offline')}
-               </span>
-            </div>
-            {dbService.isElectron() && (
-               <button 
-                  onClick={handleForceSync}
-                  className={`sync-mini-btn ${syncStatus === 'syncing' ? 'spinning' : ''}`}
-                  title="Sincronizar con la nube ahora"
-                  disabled={syncStatus === 'syncing'}
-                  style={{ background: 'none', border: 'none', color: '#00d2ff', cursor: 'pointer', fontSize: '1rem', padding: '0', display: 'flex', alignItems: 'center' }}
-               >
-                  🔄
-               </button>
-            )}
-          </div>
-
-          <nav className="sidebar-nav" onClick={() => setIsMenuOpen(false)}>
-            <NavLink to="/dashboard"><span>📊</span> Dashboard</NavLink>
-            <NavLink to="/" end><span>🏠</span> Venta</NavLink>
-            {role === 'admin' && <NavLink to="/drawer"><span>💰</span> Caja</NavLink>}
-            {role === 'admin' && (
-               <NavLink to="/inventory" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                     <span>📦</span> Inventario
-                  </div>
-                  {lowStockCount > 0 && <span className="pulse-badge">{lowStockCount}</span>}
-               </NavLink>
-            )}
-             <NavLink to="/repairs"><span>🔨</span> Reparaciones</NavLink>
-             <NavLink to="/agenda"><span>📅</span> Agenda</NavLink>
-             <NavLink to="/sales"><span>📋</span> Historial</NavLink>
-             <NavLink to="/customers"><span>👥</span> Clientes</NavLink>
-             {role === 'admin' && <NavLink to="/alerts"><span>🤖</span> Alertas</NavLink>}
-            
-             <button onClick={handleLogout} style={{ marginTop: 'auto', background: 'rgba(244,63,94,0.1)', border: 'none', color: 'var(--danger)', padding: '15px', borderRadius: '12px', cursor: 'pointer', fontWeight: 'bold' }}>Salir del Sistema</button>
-          </nav>
-          
-          <div className="rate-box" style={{ marginTop: '20px' }}>
-             <label>Tasa BS:</label>
-             {role === 'admin' ? (
-                <input 
-                  value={exchangeRate} 
-                  onChange={(e) => {
-                    setExchangeRate(e.target.value);
-                    if (dbService.saveSetting) {
-                       dbService.saveSetting('exchange_rate_bs', e.target.value);
-                    }
-                  }}
-                  style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--accent-color)', background: 'rgba(0,0,0,0.4)', color: 'white', textAlign: 'center', fontWeight: 'bold', fontSize: '1.2rem', outline: 'none' }}
-                />
-             ) : (
-                <div style={{ padding: '10px', background: 'rgba(0,0,0,0.2)', borderRadius: '5px', textAlign: 'center', fontWeight: 'bold', fontSize: '1.1rem' }}>
-                   {exchangeRate}
+        <div className="main-layout">
+           <aside className={`sidebar glass-panel ${isMenuOpen ? 'open' : ''}`}>
+             <h1 className="sidebar-logo" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+               TECHZONE
+               <span style={{ fontSize: '0.5rem', background: 'var(--success)', color: 'black', padding: '2px 6px', borderRadius: '4px', fontWeight: 'bold', letterSpacing: '1px' }}>LIVE</span>
+             </h1>
+             
+             <div className="status-badge-container">
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                   <div className={`status-dot ${syncStatus}`}></div>
+                   <span style={{ opacity: 0.8, fontSize: '0.75rem', fontWeight: '500' }}>
+                     {syncStatus === 'syncing' ? 'Sincronizando...' : (isOnline ? 'Nube Conectada' : 'Modo Local Offline')}
+                   </span>
                 </div>
-             )}
-          </div>
-
-          <div style={{ marginTop: 'auto', padding: '15px 0', opacity: 0.3, fontSize: '0.65rem', textAlign: 'center', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
-             TECHZONE SMART CORE v1.2.5
-          </div>
-        </aside>
-        
-        <main className="content">
-          <Routes>
-            <Route path="/" element={<POS refreshKey={refreshKey} exchangeRate={exchangeRate} userRole={role} businessSettings={businessSettings} />} />
-            {role === 'admin' && <Route path="/drawer" element={<CashDrawer refreshKey={refreshKey} exchangeRate={exchangeRate} />} />}
-            {role === 'admin' && <Route path="/inventory" element={<Inventory refreshKey={refreshKey} exchangeRate={exchangeRate} />} />}
-             <Route path="/agenda" element={<Agenda refreshKey={refreshKey} />} />
-             <Route path="/repairs" element={<Repairs refreshKey={refreshKey} userRole={role} />} />
-             <Route path="/sales" element={<SalesHistory refreshKey={refreshKey} exchangeRate={exchangeRate} userRole={role} />} />
-            <Route path="/customers" element={<Customers refreshKey={refreshKey} />} />
-            <Route path="/alerts" element={<Alerts />} />
-            {role === 'admin' && <Route path="/expenses" element={<Expenses refreshKey={refreshKey} />} />}
-            {role === 'admin' && <Route path="/dashboard" element={<Dashboard refreshKey={refreshKey} exchangeRate={exchangeRate} />} />}
-          </Routes>
-        </main>
+                {dbService.isElectron() && (
+                   <button 
+                      onClick={handleForceSync}
+                      className={`sync-mini-btn ${syncStatus === 'syncing' ? 'spinning' : ''}`}
+                      title="Sincronizar con la nube ahora"
+                      disabled={syncStatus === 'syncing'}
+                   >
+                      🔄
+                   </button>
+                )}
+             </div>
+ 
+             <nav className="sidebar-nav" onClick={() => setIsMenuOpen(false)}>
+               <NavLink to="/dashboard"><span>📊</span> Dashboard</NavLink>
+               <NavLink to="/" end><span>🏠</span> Venta</NavLink>
+               {role === 'admin' && <NavLink to="/drawer"><span>💰</span> Caja</NavLink>}
+               {role === 'admin' && (
+                  <NavLink to="/inventory" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <span>📦</span> Inventario
+                     </div>
+                     {lowStockCount > 0 && <span className="pulse-badge">{lowStockCount}</span>}
+                  </NavLink>
+               )}
+                <NavLink to="/repairs"><span>🔨</span> Reparaciones</NavLink>
+                <NavLink to="/agenda"><span>📅</span> Agenda</NavLink>
+                <NavLink to="/sales"><span>📋</span> Historial</NavLink>
+                <NavLink to="/customers"><span>👥</span> Clientes</NavLink>
+                {role === 'admin' && <NavLink to="/alerts"><span>🤖</span> Alertas</NavLink>}
+               
+                <button onClick={handleLogout} style={{ marginTop: '30px', background: 'rgba(244,63,94,0.1)', border: 'none', color: 'var(--danger)', padding: '15px', borderRadius: '12px', cursor: 'pointer', fontWeight: 'bold' }}>Salir del Sistema</button>
+             </nav>
+             
+             <div className="rate-box">
+                <label>Tasa BS:</label>
+                {role === 'admin' ? (
+                   <input 
+                     value={exchangeRate} 
+                     onChange={(e) => {
+                       setExchangeRate(e.target.value);
+                       if (dbService.saveSetting) {
+                          dbService.saveSetting('exchange_rate_bs', e.target.value);
+                       }
+                     }}
+                     style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--accent-color)', background: 'rgba(0,0,0,0.4)', color: 'white', textAlign: 'center', fontWeight: 'bold', fontSize: '1.2rem', outline: 'none' }}
+                   />
+                ) : (
+                   <div style={{ padding: '10px', background: 'rgba(0,0,0,0.2)', borderRadius: '5px', textAlign: 'center', fontWeight: 'bold', fontSize: '1.1rem' }}>
+                      {exchangeRate}
+                   </div>
+                )}
+             </div>
+ 
+             <div style={{ marginTop: '20px', padding: '15px 0', opacity: 0.3, fontSize: '0.65rem', textAlign: 'center', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+                TECHZONE SMART CORE v1.1.2
+             </div>
+           </aside>
+           
+           <main className="content">
+             <Routes>
+               <Route path="/" element={<POS refreshKey={refreshKey} exchangeRate={exchangeRate} userRole={role} businessSettings={businessSettings} />} />
+               {role === 'admin' && <Route path="/drawer" element={<CashDrawer refreshKey={refreshKey} exchangeRate={exchangeRate} />} />}
+               {role === 'admin' && <Route path="/inventory" element={<Inventory refreshKey={refreshKey} exchangeRate={exchangeRate} />} />}
+                <Route path="/agenda" element={<Agenda refreshKey={refreshKey} />} />
+                <Route path="/repairs" element={<Repairs refreshKey={refreshKey} userRole={role} />} />
+                <Route path="/sales" element={<SalesHistory refreshKey={refreshKey} exchangeRate={exchangeRate} userRole={role} />} />
+               <Route path="/customers" element={<Customers refreshKey={refreshKey} />} />
+               <Route path="/alerts" element={<Alerts />} />
+               {role === 'admin' && <Route path="/expenses" element={<Expenses refreshKey={refreshKey} />} />}
+               {role === 'admin' && <Route path="/dashboard" element={<Dashboard refreshKey={refreshKey} exchangeRate={exchangeRate} />} />}
+             </Routes>
+           </main>
+        </div>
       </div>
    );
 }

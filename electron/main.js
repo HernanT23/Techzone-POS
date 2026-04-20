@@ -4,6 +4,7 @@ const fs = require('fs');
 const { createClient } = require('@supabase/supabase-js');
 const { autoUpdater } = require('electron-updater');
 const log = require('electron-log');
+const xlsx = require('xlsx');
 
 // Configuración de Logs para Auto-Update
 log.transports.file.level = "info";
@@ -15,7 +16,13 @@ const SB_URL = 'https://xoxnajvnrpvhgiopxpqf.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhveG5hanZucnB2aGdpb3B4cHFmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYxOTc0MzAsImV4cCI6MjA5MTc3MzQzMH0.dTM8ey3g49GaijjOGaMe-JF4MvS8ezRDenUyDfYJh-0';
 const supabase = createClient(SB_URL, SB_KEY);
 
-const dbPath = path.join(app.getPath('userData'), 'database.json');
+let _dbPath;
+const getDbPath = () => {
+  if (!_dbPath) {
+    _dbPath = path.join(app.getPath('userData'), 'database.json');
+  }
+  return _dbPath;
+};
 
 // Logs del sistema
 function logSync(msg) {
@@ -23,6 +30,7 @@ function logSync(msg) {
 }
 
 function readDb() {
+  const dbPath = getDbPath();
   if (!fs.existsSync(dbPath)) {
     const initialData = { 
        products: [], 
@@ -43,10 +51,11 @@ function readDb() {
 }
 
 function writeDb(data) {
-  fs.writeFileSync(dbPath, JSON.stringify(data, null, 2));
+  fs.writeFileSync(getDbPath(), JSON.stringify(data, null, 2));
 }
 
 function createBackup() {
+  const dbPath = getDbPath();
   const backupDir = path.join(app.getPath('userData'), 'backups');
   if (!fs.existsSync(backupDir)) fs.mkdirSync(backupDir);
   const backupPath = path.join(backupDir, `database_backup_${new Date().toISOString().replace(/:/g, '-')}.json`);
@@ -245,7 +254,7 @@ app.whenReady().then(() => {
         if (mainWindow) mainWindow.webContents.send('db-updated');
       }
     } catch (err) {
-      console.error('⚠️ Pull error:', err.message);
+      log.error('⚠️ Pull error:', err.message);
     }
   };
 
@@ -253,6 +262,7 @@ app.whenReady().then(() => {
     try {
       console.log('📤 Sincronizando hacia la nube (Push)...');
       let dbData = readDb();
+      if (!dbData) return;
 
       // 1. Sync Products
       const productsToSync = (dbData.products || []).filter(p => p.localUpdatedAt).map(p => ({
@@ -315,8 +325,8 @@ app.whenReady().then(() => {
     }
   };
 
-  performFullSync();
-  setInterval(performFullSync, 1000 * 60 * 5);
+  performFullSync().catch(err => log.error('Initial sync failed:', err));
+  setInterval(() => performFullSync().catch(err => log.error('Scheduled sync failed:', err)), 1000 * 60 * 5);
 
   const realtimeChannel = supabase
     .channel('cloud-updates')
@@ -604,6 +614,76 @@ app.whenReady().then(() => {
      writeDb(dbData);
      await supabase.from('cash_transactions').delete().neq('id', 0);
      return { success: true };
+  });
+
+  ipcMain.handle('import-excel', async () => {
+    try {
+      const excelPath = app.isPackaged 
+        ? path.join(process.resourcesPath, 'inventory.xlsx') 
+        : path.join(app.getAppPath(), 'inventory.xlsx');
+
+      log.info(`Intentando importar desde: ${excelPath}`);
+
+      if (!fs.existsSync(excelPath)) {
+        return { success: false, error: 'No se encontró el archivo inventory.xlsx en la raíz del programa.' };
+      }
+
+      const workbook = xlsx.readFile(excelPath);
+      const sheet = workbook.Sheets[workbook.SheetNames[0]];
+      const rows = xlsx.utils.sheet_to_json(sheet);
+      
+      let dbData = readDb();
+      let imported = 0;
+
+      rows.forEach((row, index) => {
+        const keys = Object.keys(row);
+        const getVal = (possibleKeys) => {
+          for (let baseKey of possibleKeys) {
+            const match = keys.find(k => k.trim().toLowerCase() === baseKey.trim().toLowerCase());
+            if (match) return row[match];
+          }
+          return null;
+        };
+
+        const name = getVal(['Nombre', 'Name', 'Producto']);
+        if (!name) return;
+
+        const sku = getVal(['ID', 'SKU', 'Codigo']) || `EXCEL-${Date.now()}-${index}`;
+        const rawPrice = getVal(['Precio', 'Price', 'Precio USD']);
+        const rawCost = getVal(['Costo', 'Cost', 'Costo USDT']);
+        const rawStock = getVal(['Stock', 'Quantity', 'Cantidad']);
+
+        let cost = parseFloat(String(rawCost || 0).replace(',', '.').replace(/[^0-9.-]+/g,"")) || 0;
+        let price = parseFloat(String(rawPrice || 0).replace(',', '.').replace(/[^0-9.-]+/g,"")) || (cost > 0 ? cost / 0.4 : 0);
+        let stock = parseInt(String(rawStock || 0).replace(/[^0-9-]+/g,""), 10) || 0;
+
+        const product = {
+          id: sku, // Use SKU as unique ID for simpler merging
+          name: String(name).trim(),
+          sku: String(sku).trim(),
+          price: price,
+          cost: cost,
+          quantity: stock,
+          category: getVal(['Categoria', 'Category']) || 'Otros',
+          localUpdatedAt: new Date().toISOString()
+        };
+
+        const idx = dbData.products.findIndex(p => String(p.sku) === String(product.sku));
+        if (idx !== -1) {
+          dbData.products[idx] = { ...dbData.products[idx], ...product };
+        } else {
+          dbData.products.push(product);
+        }
+        imported++;
+      });
+
+      writeDb(dbData);
+      await pushStateToCloud(); // Sync changes immediately
+      return { success: true, count: imported };
+    } catch (e) {
+      console.error('Import Error:', e);
+      return { success: false, error: e.message };
+    }
   });
 
   ipcMain.handle('send-telegram', (event, text) => {
