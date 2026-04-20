@@ -149,16 +149,19 @@ function AppWrapper() {
       return (
          <div className="login-split">
             {/* LEFT / BRANDING PANEL */}
-            <div className="login-left">
-               <h1>TECHZONE</h1>
-               <h3 className="login-subtitle">ERP 2.0 Management Suite</h3>
-               <div className="security-badge">
-                  <span style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.9rem' }}>
-                    <div className="status-dot online"></div>
-                    {isDesktop ? 'Nodo Local de Escritorio' : 'Punto Remoto Vía Nube'}
-                  </span>
-               </div>
-            </div>
+             <div className="login-left">
+                <h1>TECHZONE</h1>
+                <h3 className="login-subtitle">ERP 2.0 Management Suite</h3>
+                <div style={{ marginTop: '20px', opacity: 0.5, fontSize: '0.8rem', fontWeight: 'bold', border: '1px solid rgba(255,255,255,0.2)', padding: '4px 12px', borderRadius: '20px', display: 'inline-block' }}>
+                   VERSION v1.1.3
+                </div>
+                <div className="security-badge">
+                   <span style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.9rem' }}>
+                     <div className="status-dot online"></div>
+                     {isDesktop ? 'Nodo Local de Escritorio' : 'Punto Remoto Vía Nube'}
+                   </span>
+                </div>
+             </div>
 
             {/* RIGHT / AUTH PANEL */}
             <div className="login-right">
@@ -366,7 +369,7 @@ function AppWrapper() {
              </div>
  
              <div style={{ marginTop: '20px', padding: '15px 0', opacity: 0.3, fontSize: '0.65rem', textAlign: 'center', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
-                TECHZONE SMART CORE v1.1.2
+                TECHZONE SMART CORE v1.1.3
              </div>
            </aside>
            
