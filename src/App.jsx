@@ -27,7 +27,7 @@ function AppWrapper() {
        business_name: 'TECHZONE',
        business_rif: 'J-507426785',
        business_tel: '04245655763',
-       dashboard_label: 'Negocio',
+       dashboard_label: 'Tienda',
    });
 
     // Auto-login for Mobile (No password)
@@ -61,7 +61,7 @@ function AppWrapper() {
                 business_name: settingsMap.business_name || 'TECHZONE',
                 business_rif: settingsMap.business_rif || 'J-507426785',
                 business_tel: settingsMap.business_tel || '04245655763',
-                dashboard_label: settingsMap.dashboard_label || 'Negocio'
+                dashboard_label: settingsMap.dashboard_label || 'Tienda'
              });
           }
         });
@@ -302,7 +302,7 @@ function AppWrapper() {
              </div>
  
              <nav className="sidebar-nav" onClick={() => setIsMenuOpen(false)}>
-               <NavLink to="/dashboard"><span>📊</span> {businessSettings.dashboard_label || 'Negocio'}</NavLink>
+               <NavLink to="/dashboard"><span>📊</span> {businessSettings.dashboard_label || 'Tienda'}</NavLink>
                <NavLink to="/" end><span>🏠</span> Venta</NavLink>
                {role === 'admin' && <NavLink to="/drawer"><span>💰</span> Caja</NavLink>}
                {role === 'admin' && (
@@ -358,7 +358,7 @@ function AppWrapper() {
                <Route path="/customers" element={<Customers refreshKey={refreshKey} />} />
                <Route path="/alerts" element={<Alerts />} />
                {role === 'admin' && <Route path="/expenses" element={<Expenses refreshKey={refreshKey} />} />}
-               {role === 'admin' && <Route path="/dashboard" element={<Dashboard refreshKey={refreshKey} exchangeRate={exchangeRate} dashboardLabel={businessSettings.dashboard_label || 'Negocio'} />} />}
+               {role === 'admin' && <Route path="/dashboard" element={<Dashboard refreshKey={refreshKey} exchangeRate={exchangeRate} dashboardLabel={businessSettings.dashboard_label || 'Tienda'} />} />}
              </Routes>
            </main>
         </div>

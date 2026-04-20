@@ -9,12 +9,12 @@ async function updateDashboardLabel() {
     console.log('🔄 Actualizando etiqueta del dashboard en Supabase...');
     const { error } = await supabase
         .from('settings')
-        .upsert({ key: 'dashboard_label', value: 'Negocio' }, { onConflict: 'key' });
+        .upsert({ key: 'dashboard_label', value: 'Tienda' }, { onConflict: 'key' });
 
     if (error) {
         console.error('❌ Error updating setting:', error.message);
     } else {
-        console.log('✅ Etiqueta actualizada a "Negocio" correctamente.');
+        console.log('✅ Etiqueta actualizada a "Tienda" correctamente.');
     }
 }
 
