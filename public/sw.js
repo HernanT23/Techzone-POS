@@ -1,4 +1,4 @@
-const CACHE_NAME = 'techzone-v2';
+const CACHE_NAME = 'techzone-v1-1-4';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
