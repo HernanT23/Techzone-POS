@@ -123,12 +123,7 @@ app.whenReady().then(() => {
       if (!syncLocks.products) {
         const { data: cloudProducts, error: pErr } = await supabase.from('products').select('*');
         if (!pErr && cloudProducts) {
-          const cloudProductIds = new Set(cloudProducts.map(cp => String(cp.id)));
-          const beforeCount = dbData.products.length;
-          dbData.products = dbData.products.filter(lp => 
-             cloudProductIds.has(String(lp.id)) || lp.localUpdatedAt
-          );
-          if (dbData.products.length !== beforeCount) changed = true;
+          // Ya no borramos productos locales que no estén en la nube para evitar pérdida de datos en tránsito.
           cloudProducts.forEach(cp => {
             const localIdx = dbData.products.findIndex(p => String(p.id) === String(cp.id));
             if (localIdx === -1) {
@@ -197,10 +192,7 @@ app.whenReady().then(() => {
         const { data: cloudTasks, error: tErr } = await supabase.from('tasks').select('*');
         if (!tErr && cloudTasks) {
            dbData.tasks = dbData.tasks || [];
-           const cloudTaskIds = new Set(cloudTasks.map(ct => String(ct.id)));
-           const beforeCount = dbData.tasks.length;
-           dbData.tasks = dbData.tasks.filter(lt => cloudTaskIds.has(String(lt.id)));
-           if (dbData.tasks.length !== beforeCount) changed = true;
+           // Ya no borramos tareas locales (Sincronización Aditiva)
            cloudTasks.forEach(ct => {
               const localIdx = dbData.tasks.findIndex(t => String(t.id) === String(ct.id));
               if (localIdx === -1) {
@@ -217,10 +209,7 @@ app.whenReady().then(() => {
       if (!syncLocks.repairs) {
         const { data: cloudRepairs, error: repErr } = await supabase.from('repairs').select('*');
         if (!repErr && cloudRepairs) {
-           const cloudRepIds = new Set(cloudRepairs.map(cr => String(cr.id)));
-           const beforeRep = dbData.repairs ? dbData.repairs.length : 0;
-           dbData.repairs = (dbData.repairs || []).filter(lr => cloudRepIds.has(String(lr.id)));
-           if (dbData.repairs.length !== beforeRep) changed = true;
+           // Ya no borramos reparaciones locales (Sincronización Aditiva)
            cloudRepairs.forEach(cr => {
               const localIdx = (dbData.repairs || []).findIndex(r => String(r.id) === String(cr.id));
               if (localIdx === -1) {

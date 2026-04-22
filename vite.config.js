@@ -12,27 +12,28 @@ function syncToReleasPlugin() {
       // Sincronizar con Carpeta de Proyecto
       const projectDest = path.resolve('release/resources/app/dist');
       // Sincronizar con Instalación Real en AppData (DESBLOQUEADA)
-      const desktopDest = 'C:/Users/Hernan2d/AppData/Local/Programs/valery-pos/resources/app/dist';
+      const distDest = 'C:/Users/Hernan2d/AppData/Local/Programs/valery-pos/resources/app/dist';
+      const electronDest = 'C:/Users/Hernan2d/AppData/Local/Programs/valery-pos/resources/app/electron';
 
       const copyRecursive = (from, to) => {
         if (!fs.existsSync(to)) fs.mkdirSync(to, { recursive: true });
         fs.readdirSync(from).forEach(file => {
           const s = path.join(from, file);
           const d = path.join(to, file);
-          if (fs.statSync(s).isDirectory()) copyRecursive(s, d);
-          else fs.copyFileSync(s, d);
+          if (fs.lstatSync(s).isDirectory()) {
+            copyRecursive(s, d);
+          } else {
+            fs.copyFileSync(s, d);
+          }
         });
       };
 
       try {
-        if (fs.existsSync(src)) {
-           copyRecursive(src, projectDest);
-           copyRecursive(src, desktopDest);
-        }
+        if (fs.existsSync('dist')) copyRecursive('dist', distDest);
+        if (fs.existsSync('electron')) copyRecursive('electron', electronDest);
         
-        // Sincronizar también la lógica de Electron y DB
+        // Sincronizar también la lógica de DB
         const appRoot = 'C:/Users/Hernan2d/AppData/Local/Programs/valery-pos/resources/app';
-        copyRecursive(path.resolve('electron'), path.join(appRoot, 'electron'));
         copyRecursive(path.resolve('db'), path.join(appRoot, 'db'));
         fs.copyFileSync(path.resolve('package.json'), path.join(appRoot, 'package.json'));
         
