@@ -50,8 +50,7 @@ export default function Inventory({ exchangeRate, refreshKey }) {
 
   const handleCostChange = (e) => {
     const newCost = parseFloat(e.target.value) || 0;
-    const suggestedPrice = (newCost / 0.4).toFixed(2);
-    setForm({...form, cost: newCost, price: suggestedPrice });
+    setForm({...form, cost: newCost });
   };
 
   const handleSave = async (e) => {
@@ -226,15 +225,14 @@ export default function Inventory({ exchangeRate, refreshKey }) {
                      </td>
                      {showCosts && <td><span style={{ fontSize: '0.8rem', opacity: 0.7 }}>{verifiedMargin}%</span></td>}
                      <td>
-                       <input 
-                         key={pr} 
-                         type="number" 
-                         step="0.01" 
-                         defaultValue={pr.toFixed(2)} 
-                         onBlur={(e) => handleInlinePriceChange(p.id, e.target.value)} 
-                         onKeyDown={(e) => { if (e.key === 'Enter') e.target.blur(); }}
-                         style={{ width: '80px', padding: '4px', background: 'rgba(0,0,0,0.2)', border: '1px solid var(--success)', color: 'var(--success)', borderRadius: '4px', fontWeight: 'bold' }} 
-                       />
+                        <input 
+                          type="number" 
+                          step="0.01" 
+                          defaultValue={pr.toFixed(2)} 
+                          onBlur={(e) => handleInlinePriceChange(p.id, e.target.value)} 
+                          onKeyDown={(e) => { if (e.key === 'Enter') e.target.blur(); }}
+                          style={{ width: '80px', padding: '4px', background: 'rgba(0,0,0,0.2)', border: '1px solid var(--success)', color: 'var(--success)', borderRadius: '4px', fontWeight: 'bold' }} 
+                        />
                      </td>
                      <td>
                        <span style={{ 
