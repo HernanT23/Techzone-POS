@@ -15,7 +15,7 @@ function syncToReleasPlugin() {
       const desktopDest = 'C:/Users/Hernan2d/AppData/Local/Programs/valery-pos/resources/app/dist';
 
       const copyRecursive = (from, to) => {
-        if (!fs.existsSync(to)) return; // Only sync if the folder exists (manual unlocking)
+        if (!fs.existsSync(to)) fs.mkdirSync(to, { recursive: true });
         fs.readdirSync(from).forEach(file => {
           const s = path.join(from, file);
           const d = path.join(to, file);
