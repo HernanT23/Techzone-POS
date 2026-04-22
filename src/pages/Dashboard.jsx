@@ -77,8 +77,8 @@ export default function Dashboard({ refreshKey, exchangeRate, dashboardLabel }) 
   const techCommissions = workshopManoDeObra * 0.4;
   const workshopShopProfit = workshopManoDeObra * 0.6;
 
-  // Integrar taller en Métricas Globales
-  bruteIncome += workshopTotalCollected;
+  // Integrar taller en Métricas Globales (Solo Ganancia Tienda 60% cuenta como Ingreso de Operación)
+  bruteIncome += workshopShopProfit;
   pureProfit += workshopShopProfit;
 
   deliveredRepairs.forEach(r => {
@@ -90,7 +90,7 @@ export default function Dashboard({ refreshKey, exchangeRate, dashboardLabel }) 
           const rManoDeObra = (Number(r.budget) || 0) - (Number(r.partCost) || 0);
           const rShopProfit = rManoDeObra * 0.6;
           
-          bruteIncomeToday += (Number(r.budget) || 0);
+          bruteIncomeToday += rShopProfit;
           pureProfitToday += rShopProfit;
       }
   });
@@ -130,7 +130,10 @@ export default function Dashboard({ refreshKey, exchangeRate, dashboardLabel }) 
     const workshopDay = repairs
       .filter(r => r.status === 'Entregado')
       .filter(r => new Date(r.deliveredDate || r.date).toLocaleDateString('en-CA', { timeZone: 'America/Caracas' }) === dateStr)
-      .reduce((acc, r) => acc + (Number(r.budget) || 0), 0);
+      .reduce((acc, r) => {
+          const rManoDeObra = (Number(r.budget) || 0) - (Number(r.partCost) || 0);
+          return acc + (rManoDeObra * 0.6);
+      }, 0);
       
     return { dateStr, dayName, total: salesDay + workshopDay };
   });
