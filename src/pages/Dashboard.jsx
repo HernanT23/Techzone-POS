@@ -204,8 +204,12 @@ export default function Dashboard({ refreshKey, exchangeRate, dashboardLabel }) 
         {/* 3. SECCION: HISTORICO Y UTILIDAD REAL */}
        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 2fr', gap: '20px' }}>
           <div className="glass-panel" style={{ background: 'rgba(255,255,255,0.02)' }}>
-             <h3 style={{ margin: '0 0 10px 0', opacity: 0.6, fontSize: '0.75rem', textTransform: 'uppercase' }}>Ventas Históricas (+)</h3>
+             <h3 style={{ margin: '0 0 10px 0', opacity: 0.6, fontSize: '0.75rem', textTransform: 'uppercase' }}>Ingresos Brutos (+)</h3>
              <h2 style={{ margin: '0', fontSize: '2.2rem', color: 'white' }}>${bruteIncome.toLocaleString()}</h2>
+             <div style={{ marginTop: '10px', display: 'flex', gap: '15px', fontSize: '0.75rem', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '8px' }}>
+                <div style={{opacity: 0.7}}>🛍️ Ventas: <b style={{color: 'white'}}>${(bruteIncome - workshopTotalCollected).toFixed(2)}</b></div>
+                <div style={{opacity: 0.7}}>🛠️ Taller: <b style={{color: '#3b82f6'}}>${workshopTotalCollected.toFixed(2)}</b></div>
+             </div>
           </div>
 
           <div className="glass-panel" style={{ border: '1px solid rgba(244,63,94,0.3)', background: 'rgba(244,63,94,0.03)' }}>
