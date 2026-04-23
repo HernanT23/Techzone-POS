@@ -110,7 +110,9 @@ app.whenReady().then(() => {
      repairs: false,
      tasks: false,
      cash_transactions: false,
-     settings: false
+     settings: false,
+     expenses: false,
+     customers: false
   };
 
   const pullStateFromCloud = async () => {
@@ -251,27 +253,31 @@ app.whenReady().then(() => {
       }
 
       // 8. Pull Expenses
-      const { data: cloudExpenses, error: eErr } = await supabase.from('expenses').select('*');
-      if (!eErr && cloudExpenses) {
-         dbData.expenses = dbData.expenses || [];
-         cloudExpenses.forEach(ce => {
-            if (!dbData.expenses.find(le => String(le.id) === String(ce.id))) {
-               dbData.expenses.push(ce);
-               changed = true;
-            }
-         });
+      if (!syncLocks.expenses) {
+        const { data: cloudExpenses, error: eErr } = await supabase.from('expenses').select('*');
+        if (!eErr && cloudExpenses) {
+           dbData.expenses = dbData.expenses || [];
+           cloudExpenses.forEach(ce => {
+              if (!dbData.expenses.find(le => String(le.id) === String(ce.id))) {
+                 dbData.expenses.push(ce);
+                 changed = true;
+              }
+           });
+        }
       }
 
       // 9. Pull Customers
-      const { data: cloudCustomers, error: cuErr } = await supabase.from('customers').select('*');
-      if (!cuErr && cloudCustomers) {
-         dbData.customers = dbData.customers || [];
-         cloudCustomers.forEach(cc => {
-            if (!dbData.customers.find(lc => String(lc.id) === String(cc.id))) {
-               dbData.customers.push(cc);
-               changed = true;
-            }
-         });
+      if (!syncLocks.customers) {
+        const { data: cloudCustomers, error: cuErr } = await supabase.from('customers').select('*');
+        if (!cuErr && cloudCustomers) {
+           dbData.customers = dbData.customers || [];
+           cloudCustomers.forEach(cc => {
+              if (!dbData.customers.find(lc => String(lc.id) === String(cc.id))) {
+                 dbData.customers.push(cc);
+                 changed = true;
+              }
+           });
+        }
       }
 
       // 7. Sync Admin Password for Offline use
@@ -576,12 +582,20 @@ app.whenReady().then(() => {
   });
 
   ipcMain.handle('delete-product', async (event, id) => {
-     let dbData = readDb();
-     dbData.products = dbData.products.filter(p => String(p.id) !== String(id));
-     writeDb(dbData);
-     await supabase.from('products').delete().eq('id', id);
-     return { success: true };
+    try {
+       syncLocks.products = true;
+       let dbData = readDb();
+       dbData.products = dbData.products.filter(p => String(p.id) !== String(id));
+       writeDb(dbData);
+       await supabase.from('products').delete().eq('id', id);
+       setTimeout(() => { syncLocks.products = false; }, 3000);
+       return { success: true };
+    } catch (e) {
+       syncLocks.products = false;
+       return { success: false, error: e.message };
+    }
   });
+
 
   ipcMain.handle('get-tasks', () => {
      const dbData = readDb();
@@ -602,12 +616,19 @@ app.whenReady().then(() => {
      return { success: true };
   });
 
-  ipcMain.handle('delete-task', (event, id) => {
-     let dbData = readDb();
-     dbData.tasks = (dbData.tasks || []).filter(t => String(t.id) !== String(id));
-     writeDb(dbData);
-     pushStateToCloud();
-     return { success: true };
+  ipcMain.handle('delete-task', async (event, id) => {
+    try {
+       syncLocks.tasks = true;
+       let dbData = readDb();
+       dbData.tasks = (dbData.tasks || []).filter(t => String(t.id) !== String(id));
+       writeDb(dbData);
+       await supabase.from('tasks').delete().eq('id', id);
+       setTimeout(() => { syncLocks.tasks = false; }, 3000);
+       return { success: true };
+    } catch (e) {
+       syncLocks.tasks = false;
+       return { success: false, error: e.message };
+    }
   });
 
   ipcMain.handle('save-expense', (event, expense) => {
@@ -624,12 +645,19 @@ app.whenReady().then(() => {
      return { success: true };
   });
 
-  ipcMain.handle('delete-expense', (event, id) => {
-     let dbData = readDb();
-     dbData.expenses = (dbData.expenses || []).filter(e => String(e.id) !== String(id));
-     writeDb(dbData);
-     pushStateToCloud();
-     return { success: true };
+  ipcMain.handle('delete-expense', async (event, id) => {
+    try {
+       syncLocks.expenses = true;
+       let dbData = readDb();
+       dbData.expenses = (dbData.expenses || []).filter(e => String(e.id) !== String(id));
+       writeDb(dbData);
+       await supabase.from('expenses').delete().eq('id', id);
+       setTimeout(() => { syncLocks.expenses = false; }, 3000);
+       return { success: true };
+    } catch (e) {
+       syncLocks.expenses = false;
+       return { success: false, error: e.message };
+    }
   });
 
   ipcMain.handle('process-sale', async (event, saleData) => {
@@ -653,11 +681,18 @@ app.whenReady().then(() => {
   });
 
   ipcMain.handle('delete-sale', async (event, id) => {
-     let dbData = readDb();
-     dbData.sales = dbData.sales.filter(s => String(s.id) !== String(id));
-     writeDb(dbData);
-     await supabase.from('sales').delete().eq('id', id);
-     return { success: true };
+    try {
+       syncLocks.sales = true;
+       let dbData = readDb();
+       dbData.sales = dbData.sales.filter(s => String(s.id) !== String(id));
+       writeDb(dbData);
+       await supabase.from('sales').delete().eq('id', id);
+       setTimeout(() => { syncLocks.sales = false; }, 3000);
+       return { success: true };
+    } catch (e) {
+       syncLocks.sales = false;
+       return { success: false, error: e.message };
+    }
   });
 
   ipcMain.handle('trigger-sync', async () => {
