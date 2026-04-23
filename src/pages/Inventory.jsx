@@ -48,17 +48,24 @@ export default function Inventory({ exchangeRate, refreshKey }) {
     setForm({ name: '', sku: '', cost: 0, price: 0, quantity: 0, category: 'Otros' });
   };
 
+  const normalizeNumeric = (val) => String(val).replace(',', '.').replace(/[^0-9.-]+/g, "");
+
   const handleCostChange = (e) => {
-    const newCost = parseFloat(e.target.value) || 0;
-    setForm({...form, cost: newCost });
+    setForm({...form, cost: e.target.value });
+  };
+
+  const handleSuggestPrice = () => {
+    const cost = parseFloat(normalizeNumeric(form.cost)) || 0;
+    const suggested = (cost / 0.4).toFixed(2);
+    setForm({...form, price: suggested });
   };
 
   const handleSave = async (e) => {
     e.preventDefault();
     const payload = { 
         ...form, 
-        cost: parseFloat(form.cost), 
-        price: parseFloat(form.price), 
+        cost: parseFloat(normalizeNumeric(form.cost)) || 0, 
+        price: parseFloat(normalizeNumeric(form.price)) || 0, 
         quantity: parseInt(form.quantity, 10),
         category: form.category || 'Otros'
     };
@@ -289,16 +296,38 @@ export default function Inventory({ exchangeRate, refreshKey }) {
                   <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '5px' }}>Código (SKU)</label>
                   <input required value={form.sku} onChange={e => setForm({...form, sku: e.target.value})} style={{ width: '100%', padding: '8px', borderRadius: '5px', border: '1px solid var(--glass-border)', background: 'rgba(0,0,0,0.2)', color: 'white' }} />
                </div>
-               {showCosts && (
-               <div>
-                  <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '5px' }}>Costo (USD)</label>
-                  <input type="number" step="0.01" required value={form.cost} onChange={handleCostChange} style={{ width: '100%', padding: '8px', borderRadius: '5px', border: '1px solid var(--glass-border)', background: 'rgba(0,0,0,0.2)', color: 'white' }} />
-               </div>
-               )}
-               <div>
-                  <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '5px' }}>Precio a Mostrar (USD)</label>
-                  <input type="number" step="0.01" required value={form.price} onChange={e => setForm({...form, price: e.target.value})} style={{ width: '100%', padding: '8px', borderRadius: '5px', border: '1px solid var(--glass-border)', background: 'rgba(0,0,0,0.2)', color: 'white' }} />
-               </div>
+                {showCosts && (
+                <div style={{ marginBottom: '10px' }}>
+                   <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '5px' }}>Costo (USD)</label>
+                   <div style={{ display: 'flex', gap: '5px' }}>
+                      <input 
+                        type="text" 
+                        required 
+                        value={form.cost} 
+                        onChange={handleCostChange} 
+                        style={{ flex: 1, padding: '8px', borderRadius: '5px', border: '1px solid var(--glass-border)', background: 'rgba(0,0,0,0.2)', color: 'white' }} 
+                      />
+                      <button 
+                        type="button"
+                        onClick={handleSuggestPrice}
+                        title="Sugerir precio (Margen 60%)"
+                        style={{ padding: '0 10px', background: 'rgba(255,255,0,0.2)', border: '1px solid var(--accent-color)', borderRadius: '5px', color: 'var(--accent-color)', cursor: 'pointer' }}
+                      >
+                        💡
+                      </button>
+                   </div>
+                </div>
+                )}
+                <div>
+                   <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '5px' }}>Precio a Mostrar (USD)</label>
+                   <input 
+                     type="text" 
+                     required 
+                     value={form.price} 
+                     onChange={e => setForm({...form, price: e.target.value})} 
+                     style={{ width: '100%', padding: '8px', borderRadius: '5px', border: '1px solid var(--glass-border)', background: 'rgba(0,0,0,0.2)', color: 'white' }} 
+                   />
+                </div>
                <div>
                   <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '5px' }}>Unidades (Stock)</label>
                   <input type="number" required value={form.quantity} onChange={e => setForm({...form, quantity: e.target.value})} style={{ width: '100%', padding: '8px', borderRadius: '5px', border: '1px solid var(--glass-border)', background: 'rgba(0,0,0,0.2)', color: 'white' }} />
