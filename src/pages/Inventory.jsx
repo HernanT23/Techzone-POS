@@ -16,8 +16,8 @@ export default function Inventory({ exchangeRate, refreshKey }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortConfig, setSortConfig] = useState({ key: 'name', direction: 'asc' });
 
-  // Form state
-  const [form, setForm] = useState({ name: '', sku: '', cost: 0, price: 0, quantity: 0, category: 'Otros' });
+  // Form state (Todas las entradas numéricas se manejan como strings para estabilidad absoluta)
+  const [form, setForm] = useState({ name: '', sku: '', cost: '0', price: '0', quantity: '0', category: 'Otros' });
 
   const loadProducts = () => {
     if (products.length === 0) setLoading(true);
@@ -36,16 +36,16 @@ export default function Inventory({ exchangeRate, refreshKey }) {
     setForm({ 
       name: p.name, 
       sku: p.sku, 
-      cost: p.cost || 0, 
-      price: p.price || 0, 
-      quantity: p.quantity,
+      cost: (p.cost || 0).toString(), 
+      price: (p.price || 0).toString(), 
+      quantity: (p.quantity || 0).toString(),
       category: p.category || 'Otros'
     });
   };
 
   const cancelEdit = () => {
     setEditing(null);
-    setForm({ name: '', sku: '', cost: 0, price: 0, quantity: 0, category: 'Otros' });
+    setForm({ name: '', sku: '', cost: '0', price: '0', quantity: '0', category: 'Otros' });
   };
 
   const normalizeNumeric = (val) => String(val).replace(',', '.').replace(/[^0-9.-]+/g, "");
@@ -303,15 +303,21 @@ export default function Inventory({ exchangeRate, refreshKey }) {
                       <input 
                         type="text" 
                         required 
+                        autoComplete="off"
                         value={form.cost} 
+                        onFocus={e => e.target.select()}
                         onChange={handleCostChange} 
-                        style={{ flex: 1, padding: '8px', borderRadius: '5px', border: '1px solid var(--glass-border)', background: 'rgba(0,0,0,0.2)', color: 'white' }} 
+                        style={{ 
+                          flex: 1, padding: '8px', borderRadius: '5px', 
+                          border: '1px solid var(--glass-border)', background: 'rgba(0,0,0,0.4)', color: 'white',
+                          outline: 'none', boxShadow: 'none'
+                        }} 
                       />
                       <button 
                         type="button"
                         onClick={handleSuggestPrice}
                         title="Sugerir precio (Margen 60%)"
-                        style={{ padding: '0 10px', background: 'rgba(255,255,0,0.2)', border: '1px solid var(--accent-color)', borderRadius: '5px', color: 'var(--accent-color)', cursor: 'pointer' }}
+                        style={{ padding: '0 10px', background: 'rgba(0,210,255,0.1)', border: '1px solid var(--accent-color)', borderRadius: '5px', color: 'var(--accent-color)', cursor: 'pointer' }}
                       >
                         💡
                       </button>
@@ -323,15 +329,33 @@ export default function Inventory({ exchangeRate, refreshKey }) {
                    <input 
                      type="text" 
                      required 
+                     autoComplete="off"
                      value={form.price} 
+                     onFocus={e => e.target.select()}
                      onChange={e => setForm({...form, price: e.target.value})} 
-                     style={{ width: '100%', padding: '8px', borderRadius: '5px', border: '1px solid var(--glass-border)', background: 'rgba(0,0,0,0.2)', color: 'white' }} 
+                     style={{ 
+                       width: '100%', padding: '10px', borderRadius: '5px', 
+                       border: '2px solid var(--glass-border)', background: 'rgba(0,0,0,0.5)', color: 'white',
+                       fontSize: '1.1rem', outline: 'none', boxShadow: 'none'
+                     }} 
                    />
                 </div>
-               <div>
-                  <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '5px' }}>Unidades (Stock)</label>
-                  <input type="number" required value={form.quantity} onChange={e => setForm({...form, quantity: e.target.value})} style={{ width: '100%', padding: '8px', borderRadius: '5px', border: '1px solid var(--glass-border)', background: 'rgba(0,0,0,0.2)', color: 'white' }} />
-               </div>
+                <div style={{ marginTop: '10px' }}>
+                   <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '5px' }}>Unidades (Stock)</label>
+                   <input 
+                     type="text" 
+                     required 
+                     autoComplete="off"
+                     value={form.quantity} 
+                     onFocus={e => e.target.select()}
+                     onChange={e => setForm({...form, quantity: e.target.value})} 
+                     style={{ 
+                       width: '100%', padding: '8px', borderRadius: '5px', 
+                       border: '1px solid var(--glass-border)', background: 'rgba(0,0,0,0.4)', color: 'white',
+                       outline: 'none', boxShadow: 'none'
+                     }} 
+                   />
+                </div>
                <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
                   <button type="submit" style={{ flex: 1, padding: '10px', background: 'var(--success)', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer' }}>Guardar</button>
                   {editing && <button type="button" onClick={cancelEdit} style={{ flex: 1, padding: '10px', background: 'var(--danger)', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer' }}>Cancelar</button>}
