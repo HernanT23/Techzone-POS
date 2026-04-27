@@ -1,4 +1,4 @@
-const CACHE_NAME = 'techzone-v1.1.7';
+const CACHE_NAME = 'techzone-v1.1.8';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
@@ -30,7 +30,24 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
-  // Strategy: Stale-While-Revalidate for index or assets
+  const url = new URL(event.request.url);
+  
+  // Strategy: Network First for critical assets (HTML, manifest)
+  if (url.pathname === '/' || url.pathname.endsWith('index.html') || url.pathname.endsWith('manifest.json')) {
+    event.respondWith(
+      fetch(event.request)
+        .then((networkResponse) => {
+          return caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, networkResponse.clone());
+            return networkResponse;
+          });
+        })
+        .catch(() => caches.match(event.request))
+    );
+    return;
+  }
+
+  // Strategy: Stale-While-Revalidate for other assets (JS, CSS, Images)
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
       const fetchPromise = fetch(event.request).then((networkResponse) => {
