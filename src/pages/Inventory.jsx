@@ -8,6 +8,10 @@ export default function Inventory({ exchangeRate, refreshKey }) {
   const [editing, setEditing] = useState(null);
   const [loading, setLoading] = useState(true);
   const [importing, setImporting] = useState(false);
+
+  // Audit State
+  const [auditMode, setAuditMode] = useState(false);
+  const [auditCounts, setAuditCounts] = useState({}); // { id: count }
   
   // Show/Hide costs
   const [showCosts, setShowCosts] = useState(true);
@@ -123,6 +127,49 @@ export default function Inventory({ exchangeRate, refreshKey }) {
     setSortConfig({ key, direction });
   };
 
+  const toggleAuditMode = () => {
+    if (auditMode) {
+      setAuditCounts({});
+    }
+    setAuditMode(!auditMode);
+  };
+
+  const handleAuditChange = (id, val) => {
+    setAuditCounts(prev => ({ ...prev, [id]: val }));
+  };
+
+  const applyAuditAdjustments = async () => {
+    const countToAdjust = Object.keys(auditCounts).length;
+    if (countToAdjust === 0) {
+      alert("No se han ingresado conteos físicos.");
+      return;
+    }
+
+    const confirmed = window.confirm(`¿Confirmas que deseas ajustar el inventario de la APP con los ${countToAdjust} productos revisados? Esto sobrescribirá las cantidades actuales.`);
+    if (!confirmed) return;
+
+    setLoading(true);
+    try {
+      for (const id in auditCounts) {
+        const physical = parseInt(auditCounts[id]);
+        if (isNaN(physical)) continue;
+        
+        const p = products.find(prod => prod.id == id || prod.id === parseInt(id));
+        if (p) {
+          await dbService.saveProduct({ ...p, quantity: physical });
+        }
+      }
+      alert("✅ Inventario ajustado correctamente.");
+      setAuditMode(false);
+      setAuditCounts({});
+      loadProducts();
+    } catch (e) {
+      alert("❌ Error al ajustar inventario: " + e.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const sortedAndFilteredProducts = [...products]
     .filter(p => {
       const term = searchTerm.toLowerCase();
@@ -165,25 +212,58 @@ export default function Inventory({ exchangeRate, refreshKey }) {
                       <input type="checkbox" checked={showCosts} onChange={e => setShowCosts(e.target.checked)} />
                       Costos/Márgenes
                    </label>
-                   <button 
-                     onClick={handleImportExcel}
-                     disabled={importing}
-                     style={{ 
-                        background: importing ? 'rgba(255,255,255,0.1)' : 'var(--accent-color)', 
-                        color: '#000', 
-                        border: 'none', 
-                        padding: '5px 12px', 
-                        borderRadius: '20px', 
-                        fontSize: '0.8rem', 
-                        fontWeight: 'bold', 
-                        cursor: importing ? 'wait' : 'pointer',
-                        transition: 'all 0.3s'
-                     }}
-                   >
-                      {importing ? '⌛ Procesando...' : '📥 Cargar desde Excel'}
-                   </button>
-                </div>
-             </div>
+                    <button 
+                      onClick={handleImportExcel}
+                      disabled={importing}
+                      style={{ 
+                         background: importing ? 'rgba(255,255,255,0.1)' : 'var(--accent-color)', 
+                         color: '#000', 
+                         border: 'none', 
+                         padding: '5px 12px', 
+                         borderRadius: '20px', 
+                         fontSize: '0.8rem', 
+                         fontWeight: 'bold', 
+                         cursor: importing ? 'wait' : 'pointer',
+                         transition: 'all 0.3s'
+                      }}
+                    >
+                       {importing ? '⌛ Procesando...' : '📥 Cargar desde Excel'}
+                    </button>
+                    <button 
+                      onClick={toggleAuditMode}
+                      style={{ 
+                         background: auditMode ? 'var(--danger)' : 'rgba(255,255,255,0.1)', 
+                         color: 'white', 
+                         border: '1px solid ' + (auditMode ? 'var(--danger)' : 'var(--glass-border)'), 
+                         padding: '5px 12px', 
+                         borderRadius: '20px', 
+                         fontSize: '0.8rem', 
+                         fontWeight: 'bold', 
+                         cursor: 'pointer'
+                      }}
+                    >
+                       {auditMode ? '❌ Cancelar Auditoría' : '📋 Iniciar Auditoría'}
+                    </button>
+                    {auditMode && (
+                      <button 
+                        onClick={applyAuditAdjustments}
+                        style={{ 
+                          background: 'var(--success)', 
+                          color: 'white', 
+                          border: 'none', 
+                          padding: '5px 15px', 
+                          borderRadius: '20px', 
+                          fontSize: '0.8rem', 
+                          fontWeight: 'bold', 
+                          cursor: 'pointer',
+                          boxShadow: '0 0 10px var(--success)'
+                        }}
+                      >
+                        💾 Finalizar y Ajustar Stock
+                      </button>
+                    )}
+                 </div>
+              </div>
              <div style={{ position: 'relative', width: '300px' }}>
                 <input 
                   type="text"
@@ -210,6 +290,8 @@ export default function Inventory({ exchangeRate, refreshKey }) {
                     {showCosts && <th>Margin</th>}
                     <th onClick={() => handleSort('price')} style={{cursor: 'pointer'}}>Precio (USD) {sortConfig.key === 'price' && (sortConfig.direction === 'asc' ? '↑' : '↓')}</th>
                     <th onClick={() => handleSort('quantity')} style={{cursor: 'pointer'}}>Cant. Inventario {sortConfig.key === 'quantity' && (sortConfig.direction === 'asc' ? '↑' : '↓')}</th>
+                    {auditMode && <th style={{ color: 'var(--accent-color)' }}>Conteo Físico</th>}
+                    {auditMode && <th style={{ color: 'var(--accent-color)' }}>Diferencia</th>}
                     <th>Acciones</th>
                  </tr>
                </thead>
@@ -250,6 +332,35 @@ export default function Inventory({ exchangeRate, refreshKey }) {
                          {p.quantity}
                        </span>
                      </td>
+                      {auditMode && (
+                        <td>
+                          <input 
+                            type="number"
+                            placeholder="Count..."
+                            value={auditCounts[p.id] || ''}
+                            onChange={(e) => handleAuditChange(p.id, e.target.value)}
+                            style={{ 
+                              width: '80px', padding: '5px', 
+                              background: 'rgba(255,255,255,0.1)', border: '1px solid var(--accent-color)', 
+                              color: 'white', borderRadius: '5px', outline: 'none' 
+                            }}
+                          />
+                        </td>
+                      )}
+                      {auditMode && (
+                        <td>
+                          {auditCounts[p.id] !== undefined && auditCounts[p.id] !== '' && (
+                            <span style={{ 
+                              fontWeight: 'bold',
+                              color: (parseInt(auditCounts[p.id]) - p.quantity) === 0 ? 'var(--success)' : 
+                                     (parseInt(auditCounts[p.id]) - p.quantity) < 0 ? 'var(--danger)' : 'var(--accent-color)'
+                            }}>
+                              {(parseInt(auditCounts[p.id]) - p.quantity) > 0 ? '+' : ''}
+                              {parseInt(auditCounts[p.id]) - p.quantity}
+                            </span>
+                          )}
+                        </td>
+                      )}
                      <td>
                         <button onClick={() => handleEdit(p)} style={{ background: 'transparent', color: 'var(--accent-color)', border: 'none', cursor: 'pointer', marginRight: '10px' }}>Edit</button>
                         <button onClick={() => handleDelete(p.id)} style={{ background: 'transparent', color: 'var(--danger)', border: 'none', cursor: 'pointer' }}>Del</button>
