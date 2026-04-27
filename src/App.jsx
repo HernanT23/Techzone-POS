@@ -110,11 +110,34 @@ function AppWrapper() {
        }
     };
 
-   const handleLogout = () => {
-     setRole(null);
-     setLoginPass('');
-     setLoginError('');
-   };
+    const handleLogout = () => {
+      setRole(null);
+      setLoginPass('');
+      setLoginError('');
+    };
+
+    const handleUpdateApp = async () => {
+       const confirmed = window.confirm("¿Deseas buscar y descargar la versión más reciente de la aplicación? Esto reiniciará la app.");
+       if (!confirmed) return;
+       
+       try {
+          if ('serviceWorker' in navigator) {
+             const registrations = await navigator.serviceWorker.getRegistrations();
+             for (let registration of registrations) {
+                await registration.unregister();
+             }
+          }
+          const cacheNames = await caches.keys();
+          for (let cacheName of cacheNames) {
+             await caches.delete(cacheName);
+          }
+          alert("Aplicación actualizada. Reiniciando...");
+          window.location.reload();
+       } catch (e) {
+          alert("Error al actualizar: " + e.message);
+          window.location.reload();
+       }
+    };
 
    const [selectedProfile, setSelectedProfile] = useState('admin');
    const [showMobilePass, setShowMobilePass] = useState(false);
@@ -319,7 +342,8 @@ function AppWrapper() {
                 <NavLink to="/customers"><span>👥</span> Clientes</NavLink>
                 {role === 'admin' && <NavLink to="/alerts"><span>🤖</span> Alertas</NavLink>}
                
-                <button onClick={handleLogout} style={{ marginTop: '30px', background: 'rgba(244,63,94,0.1)', border: 'none', color: 'var(--danger)', padding: '15px', borderRadius: '12px', cursor: 'pointer', fontWeight: 'bold' }}>Salir del Sistema</button>
+                <button onClick={handleUpdateApp} style={{ marginTop: '20px', width: '100%', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--glass-border)', color: 'var(--accent-color)', padding: '10px', borderRadius: '12px', cursor: 'pointer', fontSize: '0.8rem' }}>✨ Buscar Actualización</button>
+                <button onClick={handleLogout} style={{ marginTop: '10px', width: '100%', background: 'rgba(244,63,94,0.1)', border: 'none', color: 'var(--danger)', padding: '15px', borderRadius: '12px', cursor: 'pointer', fontWeight: 'bold' }}>Salir del Sistema</button>
              </nav>
              
              <div className="rate-box">

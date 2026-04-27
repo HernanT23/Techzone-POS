@@ -29,6 +29,8 @@ contextBridge.exposeInMainWorld('api', {
   getRepairs: () => ipcRenderer.invoke('get-repairs'),
   saveRepair: (repair) => ipcRenderer.invoke('save-repair', repair),
   deleteRepair: (id) => ipcRenderer.invoke('delete-repair', id),
+  saveAbono: (abono) => ipcRenderer.invoke('save-abono', abono),
+  getAbonos: () => ipcRenderer.invoke('get-abonos'),
   clearAllRepairs: () => ipcRenderer.invoke('clear-all-repairs'),
   importExcel: () => ipcRenderer.invoke('import-excel'),
 

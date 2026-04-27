@@ -9,6 +9,7 @@ export default function CashDrawer({ exchangeRate, refreshKey }) {
   
   // Withdrawals form state
   const [showModal, setShowModal] = useState(false);
+  const [modalMode, setModalMode] = useState('withdrawal'); // 'withdrawal' or 'deposit'
   const [amount, setAmount] = useState('');
   const [currency, setCurrency] = useState('USD');
   const [reason, setReason] = useState('');
@@ -42,7 +43,7 @@ export default function CashDrawer({ exchangeRate, refreshKey }) {
     loadData();
   }, [refreshKey]);
 
-  const handleWithdrawal = async (e) => {
+  const handleTransaction = async (e) => {
     e.preventDefault();
     if (!amount || isNaN(amount) || amount <= 0) {
         alert("Ingrese un monto válido.");
@@ -51,10 +52,10 @@ export default function CashDrawer({ exchangeRate, refreshKey }) {
     
     const res = await dbService.addCashTransaction({
         date: new Date().toISOString(),
-        type: 'withdrawal',
+        type: modalMode,
         amount: parseFloat(amount),
         currency: currency,
-        reason: reason || 'Retiro sin especificar'
+        reason: reason || (modalMode === 'withdrawal' ? 'Retiro sin especificar' : 'Ingreso de capital')
     });
     
     if (res.success) {
@@ -67,14 +68,22 @@ export default function CashDrawer({ exchangeRate, refreshKey }) {
     }
   };
 
+  const handleWithdrawAll = () => {
+    const total = currency === 'USD' ? currentCashUSD : currentCashBS;
+    setAmount(total.toFixed(2));
+  };
+
   const totalSalesUSD = sales.reduce((acc, s) => acc + (s.paidUSD > 0 ? s.paidUSD - (s.changeUSD||0) : 0), 0);
   const totalSalesBS = sales.reduce((acc, s) => acc + (s.paidBS > 0 ? s.paidBS - (s.changeBS||0) : 0), 0);
 
-  const totalWithdrawalsUSD = transactions.filter(t => t.currency === 'USD').reduce((acc, t) => acc + t.amount, 0);
-  const totalWithdrawalsBS = transactions.filter(t => t.currency === 'BS').reduce((acc, t) => acc + t.amount, 0);
+  const totalWithdrawalsUSD = transactions.filter(t => t.currency === 'USD' && t.type === 'withdrawal').reduce((acc, t) => acc + t.amount, 0);
+  const totalWithdrawalsBS = transactions.filter(t => t.currency === 'BS' && t.type === 'withdrawal').reduce((acc, t) => acc + t.amount, 0);
 
-  const currentCashUSD = totalSalesUSD - totalWithdrawalsUSD;
-  const currentCashBS = totalSalesBS - totalWithdrawalsBS;
+  const totalDepositsUSD = transactions.filter(t => t.currency === 'USD' && (t.type === 'deposit' || t.type === 'capital')).reduce((acc, t) => acc + t.amount, 0);
+  const totalDepositsBS = transactions.filter(t => t.currency === 'BS' && (t.type === 'deposit' || t.type === 'capital')).reduce((acc, t) => acc + t.amount, 0);
+
+  const currentCashUSD = totalSalesUSD + totalDepositsUSD - totalWithdrawalsUSD;
+  const currentCashBS = totalSalesBS + totalDepositsBS - totalWithdrawalsBS;
 
   const handleZClose = async () => {
      if (!window.confirm("¿Estás seguro de hacer el Corte Z? Esto dejará la fecha marcada contablemente.")) return;
@@ -124,10 +133,12 @@ export default function CashDrawer({ exchangeRate, refreshKey }) {
 
       {showModal && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, backdropFilter: 'blur(5px)' }}>
-            <form onSubmit={handleWithdrawal} className="glass-panel" style={{ width: '400px', display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                <h3 style={{ margin: 0, color: 'var(--danger)' }}>💸 Retirar Dinero</h3>
+            <form onSubmit={handleTransaction} className="glass-panel" style={{ width: '400px', display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                <h3 style={{ margin: 0, color: modalMode === 'withdrawal' ? 'var(--danger)' : 'var(--success)' }}>
+                  {modalMode === 'withdrawal' ? '💸 Retirar Dinero' : '💰 Ingresar Capital'}
+                </h3>
                 <div>
-                   <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '5px' }}>Monto a descontar:</label>
+                   <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '5px' }}>Monto:</label>
                    <div style={{ display: 'flex', gap: '10px' }}>
                        <input type="number" step="0.01" required value={amount} onChange={e => setAmount(e.target.value)} style={{ flex: 1, padding: '10px', borderRadius: '5px', border: '1px solid var(--glass-border)', background: 'rgba(0,0,0,0.3)', color: 'white' }} placeholder="Ej: 20.00" />
                        <select value={currency} onChange={e => setCurrency(e.target.value)} style={{ padding: '10px', borderRadius: '5px', background: 'rgba(0,0,0,0.5)', color: 'white' }}>
@@ -135,14 +146,21 @@ export default function CashDrawer({ exchangeRate, refreshKey }) {
                           <option value="BS">Bs.</option>
                        </select>
                    </div>
+                   {modalMode === 'withdrawal' && (
+                     <button type="button" onClick={handleWithdrawAll} style={{ marginTop: '10px', background: 'rgba(255,255,255,0.1)', color: 'white', border: '1px solid rgba(255,255,255,0.2)', padding: '5px 10px', borderRadius: '5px', cursor: 'pointer', fontSize: '0.8rem' }}>
+                       🏧 Retirar Todo
+                     </button>
+                   )}
                 </div>
                 <div>
                    <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '5px' }}>Motivo / Concepto:</label>
-                   <input type="text" required value={reason} onChange={e => setReason(e.target.value)} style={{ width: '100%', padding: '10px', borderRadius: '5px', border: '1px solid var(--glass-border)', background: 'rgba(0,0,0,0.3)', color: 'white' }} placeholder="Pago de proveedor, pasajes..." />
+                   <input type="text" required value={reason} onChange={e => setReason(e.target.value)} style={{ width: '100%', padding: '10px', borderRadius: '5px', border: '1px solid var(--glass-border)', background: 'rgba(0,0,0,0.3)', color: 'white' }} placeholder={modalMode === 'withdrawal' ? "Pago de proveedor, pasajes..." : "Inyección de capital, base de caja..."} />
                 </div>
                 <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
                    <button type="button" onClick={() => setShowModal(false)} style={{ flex: 1, padding: '10px', background: 'transparent', color: 'white', border: '1px solid white', borderRadius: '5px', cursor: 'pointer' }}>Cancelar</button>
-                   <button type="submit" style={{ flex: 1, padding: '10px', background: 'var(--danger)', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold' }}>Extraer y Guardar</button>
+                   <button type="submit" style={{ flex: 1, padding: '10px', background: modalMode === 'withdrawal' ? 'var(--danger)' : 'var(--success)', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold' }}>
+                     {modalMode === 'withdrawal' ? 'Extraer y Guardar' : 'Ingresar y Guardar'}
+                   </button>
                 </div>
             </form>
         </div>
@@ -158,34 +176,41 @@ export default function CashDrawer({ exchangeRate, refreshKey }) {
          </div>
 
          <div style={{ display: 'flex', gap: '15px' }}>
-            <div style={{ flex: 1, background: 'rgba(16, 185, 129, 0.1)', border: '1px solid var(--success)', borderRadius: '10px', padding: '20px' }}>
-               <h3 style={{ margin: '0 0 10px 0', opacity: 0.8 }}>Ingreso Físico USD</h3>
-               <h1 style={{ margin: 0, fontSize: '2.5rem', color: 'var(--success)' }}>${currentCashUSD.toFixed(2)}</h1>
-               <div style={{ marginTop: '10px', fontSize: '0.9rem', opacity: 0.8 }}>
-                 <p>+ Bruto Ventas: ${totalSalesUSD.toFixed(2)}</p>
-                 <p style={{ color: 'var(--danger)' }}>- Retiros Extraídos: ${totalWithdrawalsUSD.toFixed(2)}</p>
-               </div>
-            </div>
+             <div style={{ flex: 1, background: 'rgba(16, 185, 129, 0.1)', border: '1px solid var(--success)', borderRadius: '10px', padding: '20px' }}>
+                <h3 style={{ margin: '0 0 10px 0', opacity: 0.8 }}>Ingreso Físico USD</h3>
+                <h1 style={{ margin: 0, fontSize: '2.5rem', color: 'var(--success)' }}>${currentCashUSD.toFixed(2)}</h1>
+                <div style={{ marginTop: '10px', fontSize: '0.9rem', opacity: 0.8 }}>
+                  <p>+ Ventas: ${totalSalesUSD.toFixed(2)}</p>
+                  <p>+ Capital/Base: ${totalDepositsUSD.toFixed(2)}</p>
+                  <p style={{ color: 'var(--danger)' }}>- Retiros: ${totalWithdrawalsUSD.toFixed(2)}</p>
+                </div>
+             </div>
 
-            <div style={{ flex: 1, background: 'rgba(0, 210, 255, 0.1)', border: '1px solid var(--accent-color)', borderRadius: '10px', padding: '20px' }}>
-               <h3 style={{ margin: '0 0 10px 0', opacity: 0.8 }}>Ingreso Físico BS</h3>
-               <h1 style={{ margin: 0, fontSize: '2.5rem', color: 'var(--accent-color)' }}>Bs. {currentCashBS.toFixed(2)}</h1>
-               <div style={{ marginTop: '10px', fontSize: '0.9rem', opacity: 0.8 }}>
-                 <p>+ Bruto Ventas: Bs. {totalSalesBS.toFixed(2)}</p>
-                 <p style={{ color: 'var(--danger)' }}>- Retiros Extraídos: Bs. {totalWithdrawalsBS.toFixed(2)}</p>
-               </div>
-            </div>
+             <div style={{ flex: 1, background: 'rgba(0, 210, 255, 0.1)', border: '1px solid var(--accent-color)', borderRadius: '10px', padding: '20px' }}>
+                <h3 style={{ margin: '0 0 10px 0', opacity: 0.8 }}>Ingreso Físico BS</h3>
+                <h1 style={{ margin: 0, fontSize: '2.5rem', color: 'var(--accent-color)' }}>Bs. {currentCashBS.toFixed(2)}</h1>
+                <div style={{ marginTop: '10px', fontSize: '0.9rem', opacity: 0.8 }}>
+                  <p>+ Ventas: Bs. {totalSalesBS.toFixed(2)}</p>
+                  <p>+ Capital/Base: Bs. {totalDepositsBS.toFixed(2)}</p>
+                  <p style={{ color: 'var(--danger)' }}>- Retiros: Bs. {totalWithdrawalsBS.toFixed(2)}</p>
+                </div>
+             </div>
          </div>
 
-         <div style={{ marginTop: 'auto', background: 'rgba(0,0,0,0.3)', padding: '20px', borderRadius: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div>
-               <h3 style={{ margin: 0 }}>Descuento Físico de Caja</h3>
-               <p style={{ margin: 0, opacity: 0.6, fontSize: '0.9rem' }}>Registra cualquier pago a proveedor desde la gaveta.</p>
-            </div>
-            <button onClick={() => setShowModal(true)} style={{ padding: '15px 30px', background: 'var(--danger)', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}>
-              Registrar Retiro
-            </button>
-         </div>
+          <div style={{ marginTop: 'auto', background: 'rgba(0,0,0,0.3)', padding: '20px', borderRadius: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+             <div>
+                <h3 style={{ margin: 0 }}>Gestión de Efectivo</h3>
+                <p style={{ margin: 0, opacity: 0.6, fontSize: '0.9rem' }}>Registra ingresos de capital o pagos desde la gaveta.</p>
+             </div>
+             <div style={{ display: 'flex', gap: '10px' }}>
+                <button onClick={() => { setModalMode('deposit'); setShowModal(true); }} style={{ padding: '15px 20px', background: 'var(--success)', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}>
+                  💰 Ingresar Capital
+                </button>
+                <button onClick={() => { setModalMode('withdrawal'); setShowModal(true); }} style={{ padding: '15px 20px', background: 'var(--danger)', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}>
+                  💸 Registrar Retiro
+                </button>
+             </div>
+          </div>
       </div>
 
       {/* MID: DETALLE DE VENTAS HOY */}
@@ -224,8 +249,8 @@ export default function CashDrawer({ exchangeRate, refreshKey }) {
                            <div style={{ fontWeight: 'bold', fontSize: '0.9rem' }}>{t.reason}</div>
                            <div style={{ fontSize: '0.75rem', opacity: 0.6 }}>{new Date(t.date).toLocaleTimeString()}</div>
                         </div>
-                        <div style={{ color: 'var(--danger)', fontWeight: 'bold' }}>
-                           -{t.currency === 'USD' ? '$' : 'Bs.'}{t.amount.toFixed(2)}
+                        <div style={{ color: t.type === 'withdrawal' ? 'var(--danger)' : 'var(--success)', fontWeight: 'bold' }}>
+                           {t.type === 'withdrawal' ? '-' : '+'}{t.currency === 'USD' ? '$' : 'Bs.'}{t.amount.toFixed(2)}
                         </div>
                      </div>
                   ))

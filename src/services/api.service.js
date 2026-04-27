@@ -324,6 +324,21 @@ export const dbService = {
     return { success: !error, error: error?.message };
   },
 
+  getAbonos: async () => {
+    if (isElectron) {
+      const res = await window.api.getAbonos();
+      return res.success ? res.data : [];
+    }
+    const { data } = await supabase.from('abonos').select('*');
+    return data || [];
+  },
+
+  saveAbono: async (abono) => {
+    if (isElectron) return window.api.saveAbono(abono);
+    const { error } = await supabase.from('abonos').upsert(abono);
+    return { success: !error, error: error?.message };
+  },
+
   saveRepairSale: async (saleData) => {
     // Esta función registra el ingreso neto (60%) en el historial de ventas
     const sale = {

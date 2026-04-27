@@ -40,7 +40,9 @@ function readDb() {
        settings: { exchange_rate_bs: 40.0, admin_password: 'holaadio01' },
        tasks: [],
        repairs: [],
-       expenses: []
+       expenses: [],
+       abonos: [],
+       customers: []
     };
     fs.writeFileSync(dbPath, JSON.stringify(initialData, null, 2));
     return initialData;
@@ -74,10 +76,23 @@ function createWindow() {
     icon: path.join(__dirname, '..', 'public', 'techzone_icon.png')
   });
 
+  const remoteURL = 'https://techzone-erp.vercel.app/';
+  const localFile = path.join(__dirname, '..', 'dist', 'index.html');
+
   if (process.env.NODE_ENV === 'development') {
     win.loadURL('http://localhost:5173');
   } else {
-    win.loadFile(path.join(__dirname, '..', 'dist', 'index.html'));
+    win.loadURL(remoteURL).catch(err => {
+      console.log('Error de red, cargando local:', err.message);
+      win.loadFile(localFile);
+    });
+
+    win.webContents.on('did-fail-load', (event, errorCode, errorDescription, validatedURL, isMainFrame) => {
+      if (isMainFrame) {
+        console.log('Fallo la carga de URL:', errorDescription, errorCode, 'Cargando fallback local...');
+        win.loadFile(localFile);
+      }
+    });
   }
   
   // win.webContents.openDevTools();
@@ -392,6 +407,11 @@ app.whenReady().then(() => {
          await supabase.from('customers').upsert(dbData.customers);
       }
 
+      // 10. Sync Abonos
+      if (dbData.abonos && dbData.abonos.length > 0) {
+         await supabase.from('abonos').upsert(dbData.abonos);
+      }
+
       logSync('✅ Nube actualizada.');
     } catch (err) {
       console.error('⚠️ Push error:', err.message);
@@ -602,6 +622,25 @@ app.whenReady().then(() => {
      return { success: true, data: dbData.tasks || [] };
   });
 
+  ipcMain.handle('save-abono', async (event, abono) => {
+    try {
+      let dbData = readDb();
+      if (!dbData.abonos) dbData.abonos = [];
+      const id = abono.id || Date.now();
+      dbData.abonos.push({ ...abono, id });
+      writeDb(dbData);
+      pushStateToCloud();
+      return { success: true, id };
+    } catch (e) {
+      return { success: false, error: e.message };
+    }
+  });
+
+  ipcMain.handle('get-abonos', () => {
+    const dbData = readDb();
+    return { success: true, data: dbData.abonos || [] };
+  });
+
   ipcMain.handle('save-task', (event, task) => {
      let dbData = readDb();
      if (!dbData.tasks) dbData.tasks = [];
@@ -731,14 +770,20 @@ app.whenReady().then(() => {
 
   ipcMain.handle('import-excel', async () => {
     try {
-      const excelPath = app.isPackaged 
-        ? path.join(process.resourcesPath, 'inventory.xlsx') 
-        : path.join(app.getAppPath(), 'inventory.xlsx');
+      const { canceled, filePaths } = await dialog.showOpenDialog({
+        properties: ['openFile'],
+        filters: [{ name: 'Excel Files', extensions: ['xlsx', 'xls'] }]
+      });
+      
+      if (canceled || filePaths.length === 0) {
+        return { success: false, error: 'Importación cancelada.' };
+      }
 
+      const excelPath = filePaths[0];
       log.info(`Intentando importar desde: ${excelPath}`);
 
       if (!fs.existsSync(excelPath)) {
-        return { success: false, error: 'No se encontró el archivo inventory.xlsx en la raíz del programa.' };
+        return { success: false, error: 'No se encontró el archivo seleccionado.' };
       }
 
       const workbook = xlsx.readFile(excelPath);
@@ -761,13 +806,14 @@ app.whenReady().then(() => {
         const name = getVal(['Nombre', 'Name', 'Producto']);
         if (!name) return;
 
-        const sku = getVal(['ID', 'SKU', 'Codigo']) || `EXCEL-${Date.now()}-${index}`;
+        const sku = getVal(['ID', 'SKU', 'Codigo']) || (Date.now() + index).toString();
         const rawPrice = getVal(['Precio', 'Price', 'Precio USD']);
         const rawCost = getVal(['Costo', 'Cost', 'Costo USDT']);
         const rawStock = getVal(['Stock', 'Quantity', 'Cantidad']);
 
         let cost = parseFloat(String(rawCost || 0).replace(',', '.').replace(/[^0-9.-]+/g,"")) || 0;
-        let price = parseFloat(String(rawPrice || 0).replace(',', '.').replace(/[^0-9.-]+/g,"")) || (cost > 0 ? cost / 0.4 : 0);
+        let basePrice = parseFloat(String(rawPrice || 0).replace(',', '.').replace(/[^0-9.-]+/g,"")) || (cost > 0 ? cost / 0.4 : 0);
+        let price = Math.round(basePrice * 2) / 2; // Redondear al 0.5 más cercano
         let stock = parseInt(String(rawStock || 0).replace(/[^0-9-]+/g,""), 10) || 0;
 
         const product = {
