@@ -177,11 +177,11 @@ export default function Dashboard({ refreshKey, exchangeRate, dashboardLabel }) 
           </div>
        </div>
        
-       {/* 2. SECCION: METRICAS DE TALLER (60/40) */}
+         {/* 2. SECCION: METRICAS DE TALLER (60/40) */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '15px' }}>
            <div className="glass-panel" style={{ background: 'rgba(59, 130, 246, 0.05)', border: '1px solid rgba(59, 130, 246, 0.2)' }}>
               <div style={{ fontSize: '1.5rem', marginBottom: '5px' }}>🛠️</div>
-              <div style={{ fontSize: '0.7rem', opacity: 0.6, textTransform: 'uppercase' }}>Total Taller</div>
+              <div style={{ fontSize: '0.7rem', opacity: 0.6, textTransform: 'uppercase' }}>Ingreso Taller</div>
               <div style={{ fontSize: '1.4rem', fontWeight: 'bold', color: '#3b82f6' }}>${workshopTotalCollected.toFixed(2)}</div>
            </div>
            
@@ -201,6 +201,28 @@ export default function Dashboard({ refreshKey, exchangeRate, dashboardLabel }) 
               <div style={{ fontSize: '1.5rem', marginBottom: '5px' }}>💰</div>
               <div style={{ fontSize: '0.7rem', opacity: 0.6, textTransform: 'uppercase', color: 'var(--success)' }}>Ganancia Tienda (60%)</div>
               <div style={{ fontSize: '1.6rem', fontWeight: '900', color: 'var(--success)' }}>${workshopShopProfit.toFixed(2)}</div>
+           </div>
+        </div>
+
+        {/* 2.5 ESTADO DE REPARACIONES */}
+        <div className="glass-panel" style={{ background: 'rgba(0,0,0,0.1)', padding: '15px 20px' }}>
+           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+              <h3 style={{ margin: 0, fontSize: '1rem', color: '#3b82f6' }}>🔧 FLUJO DE TALLER</h3>
+              <span style={{ fontSize: '0.8rem', opacity: 0.7 }}>{repairs.filter(r => r.status !== 'Entregado').length} Equipos en Taller</span>
+           </div>
+           <div style={{ display: 'flex', gap: '10px' }}>
+              <div style={{ flex: 1, background: 'rgba(250, 204, 21, 0.1)', border: '1px solid rgba(250, 204, 21, 0.3)', padding: '10px', borderRadius: '8px', textAlign: 'center' }}>
+                 <div style={{ fontSize: '1.5rem', color: '#facc15', fontWeight: 'bold' }}>{repairs.filter(r => r.status === 'Pendiente' || r.status === 'En Revisión').length}</div>
+                 <div style={{ fontSize: '0.7rem', opacity: 0.7 }}>Pendientes / Revisión</div>
+              </div>
+              <div style={{ flex: 1, background: 'rgba(59, 130, 246, 0.1)', border: '1px solid rgba(59, 130, 246, 0.3)', padding: '10px', borderRadius: '8px', textAlign: 'center' }}>
+                 <div style={{ fontSize: '1.5rem', color: '#3b82f6', fontWeight: 'bold' }}>{repairs.filter(r => r.status === 'Reparado').length}</div>
+                 <div style={{ fontSize: '0.7rem', opacity: 0.7 }}>Reparados (Por Entregar)</div>
+              </div>
+              <div style={{ flex: 1, background: 'rgba(16, 185, 129, 0.1)', border: '1px solid rgba(16, 185, 129, 0.3)', padding: '10px', borderRadius: '8px', textAlign: 'center' }}>
+                 <div style={{ fontSize: '1.5rem', color: '#10b981', fontWeight: 'bold' }}>{repairs.filter(r => r.status === 'Entregado').length}</div>
+                 <div style={{ fontSize: '0.7rem', opacity: 0.7 }}>Entregados (Historico)</div>
+              </div>
            </div>
         </div>
 

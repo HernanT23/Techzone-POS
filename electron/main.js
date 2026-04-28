@@ -29,7 +29,13 @@ function logSync(msg) {
   console.log(`[SYNC] ${new Date().toLocaleTimeString()}: ${msg}`);
 }
 
+let dbCache = null;
+let isWriting = false;
+let pendingWrite = false;
+
 function readDb() {
+  if (dbCache) return dbCache; // Cache en memoria instantáneo
+  
   const dbPath = getDbPath();
   if (!fs.existsSync(dbPath)) {
     const initialData = { 
@@ -45,15 +51,56 @@ function readDb() {
        customers: []
     };
     fs.writeFileSync(dbPath, JSON.stringify(initialData, null, 2));
-    return initialData;
+    dbCache = initialData;
+    return dbCache;
   }
   const data = JSON.parse(fs.readFileSync(dbPath, 'utf8'));
   if (!data.expenses) data.expenses = [];
-  return data;
+  dbCache = data;
+  return dbCache;
 }
 
 function writeDb(data) {
-  fs.writeFileSync(getDbPath(), JSON.stringify(data, null, 2));
+  dbCache = data; // Actualiza la vista de memoria instantáneamente
+  
+  if (isWriting) {
+    pendingWrite = true;
+    return;
+  }
+  
+  const performWrite = () => {
+    isWriting = true;
+    pendingWrite = false;
+    const dbPath = getDbPath();
+    const tempPath = dbPath + '.tmp';
+    
+    // Escritura asíncrona a un archivo temporal (evita que se congele la UI)
+    fs.writeFile(tempPath, JSON.stringify(dbCache, null, 2), 'utf8', (err) => {
+      if (err) {
+        log.error("Error escribiendo DB temporal:", err);
+        isWriting = false;
+        if (pendingWrite) performWrite();
+        return;
+      }
+      
+      // Renombrado atómico (evita archivos corruptos si se va la luz)
+      fs.rename(tempPath, dbPath, (renameErr) => {
+        if (renameErr) {
+            log.error("Error renombrando DB:", renameErr);
+            // Fallback manual en caso de que el SO bloquee rename
+            fs.copyFile(tempPath, dbPath, () => {
+                isWriting = false;
+                if (pendingWrite) performWrite();
+            });
+        } else {
+            isWriting = false;
+            if (pendingWrite) performWrite();
+        }
+      });
+    });
+  };
+
+  performWrite();
 }
 
 function createBackup() {

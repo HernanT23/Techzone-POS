@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { HashRouter as Router, Routes, Route, Link, NavLink } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route, Link, NavLink, useNavigate } from 'react-router-dom';
 import POS from './pages/POS';
 import Dashboard from './pages/Dashboard';
 import Inventory from './pages/Inventory';
@@ -29,6 +29,43 @@ function AppWrapper() {
        business_tel: '04245655763',
        dashboard_label: 'Tienda',
    });
+
+   const navigate = useNavigate();
+
+   // Atajos de Teclado Globales
+   useEffect(() => {
+     if (!role) return;
+     
+     const handleKeyDown = (e) => {
+       if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+         if (!e.key.startsWith('F')) return;
+       }
+
+       switch(e.key) {
+         case 'F2':
+           e.preventDefault();
+           navigate('/');
+           break;
+         case 'F3':
+           e.preventDefault();
+           if (role === 'admin') navigate('/inventory');
+           break;
+         case 'F4':
+           e.preventDefault();
+           navigate('/repairs');
+           break;
+         case 'F12':
+           e.preventDefault();
+           if (role === 'admin') navigate('/drawer');
+           break;
+         default:
+           break;
+       }
+     };
+
+     window.addEventListener('keydown', handleKeyDown);
+     return () => window.removeEventListener('keydown', handleKeyDown);
+   }, [navigate, role]);
 
     // Auto-login for Mobile (No password)
     useEffect(() => {
@@ -326,17 +363,17 @@ function AppWrapper() {
  
              <nav className="sidebar-nav" onClick={() => setIsMenuOpen(false)}>
                <NavLink to="/dashboard"><span>📊</span> {businessSettings.dashboard_label || 'Tienda'}</NavLink>
-               <NavLink to="/" end><span>🏠</span> Venta</NavLink>
-               {role === 'admin' && <NavLink to="/drawer"><span>💰</span> Caja</NavLink>}
+               <NavLink to="/" end><span>🏠</span> Venta <span className="shortcut-hint">F2</span></NavLink>
+               {role === 'admin' && <NavLink to="/drawer"><span>💰</span> Caja <span className="shortcut-hint">F12</span></NavLink>}
                {role === 'admin' && (
                   <NavLink to="/inventory" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                        <span>📦</span> Inventario
+                        <span>📦</span> Inventario <span className="shortcut-hint">F3</span>
                      </div>
                      {lowStockCount > 0 && <span className="pulse-badge">{lowStockCount}</span>}
                   </NavLink>
                )}
-                <NavLink to="/repairs"><span>🔨</span> Reparaciones</NavLink>
+                <NavLink to="/repairs"><span>🔨</span> Reparaciones <span className="shortcut-hint">F4</span></NavLink>
                 <NavLink to="/agenda"><span>📅</span> Agenda</NavLink>
                 <NavLink to="/sales"><span>📋</span> Historial</NavLink>
                 <NavLink to="/customers"><span>👥</span> Clientes</NavLink>
